@@ -8,102 +8,106 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
 function buildPrompt(metrics) {
-  return `You are a clinical facial analyst. A 68-point landmark system computed structural measurements from this photo. The data is reference — use YOUR EYES.
+  return `You are a clinical facial analyst. A 68-point landmark system computed structural measurements. Use the data as context but trust YOUR EYES for the overall assessment.
 
-COMPUTED DATA (reference only):
+COMPUTED DATA (reference):
 ${JSON.stringify(metrics, null, 2)}
 
 RESPOND WITH ONLY VALID JSON. No markdown, no backticks.
 
 {
-  "attractiveness_percentile": 85,
-  "percentile_reasoning": "One sentence: why this percentile.",
+  "tier": 6,
+  "tier_placement": 7,
+  "tier_reasoning": "One sentence: why this tier and placement.",
 
-  "presentation_percentiles": {
-    "skin_clarity": { "percentile": 70, "note": "One sentence" },
-    "coloring_contrast": { "percentile": 60, "note": "One sentence" },
-    "hair": { "percentile": 75, "note": "One sentence" },
-    "expression_quality": { "percentile": 50, "note": "One sentence" },
-    "grooming": { "percentile": 70, "note": "One sentence" },
-    "photo_quality": { "percentile": 60, "note": "One sentence" }
+  "presentation_tiers": {
+    "skin_clarity": { "tier": 5, "placement": 6, "note": "One sentence" },
+    "coloring_contrast": { "tier": 4, "placement": 5, "note": "One sentence" },
+    "hair": { "tier": 5, "placement": 7, "note": "One sentence" },
+    "expression_quality": { "tier": 4, "placement": 5, "note": "One sentence" },
+    "grooming": { "tier": 5, "placement": 6, "note": "One sentence" },
+    "photo_quality": { "tier": 4, "placement": 5, "note": "One sentence" }
   },
 
-  "harmony": {
-    "adjustment": 0.3,
-    "note": "One sentence. Range: -1.0 to +1.0."
-  },
+  "harmony": { "adjustment": 0.3, "note": "One sentence. Range -1.0 to +1.0." },
 
-  "personality_read": "3-4 sentences. How do people instinctively react to this face? Professional, social, dating contexts.",
+  "personality_read": "3-4 sentences. How do people instinctively react to this face?",
 
   "archetype": "2-4 word label",
   "opening": "One razor-sharp sentence about this face's architecture",
   "first_impression": "Exactly 6 words",
 
   "best_angle": { "side": "left", "note": "One sentence" },
-  "best_features": [
-    { "feature": "Name", "detail": "One sentence" }
-  ],
-  "leaks": [
-    { "issue": "Name", "detail": "One sentence" }
-  ],
+  "best_features": [{ "feature": "Name", "detail": "One sentence" }],
+  "leaks": [{ "issue": "Name", "detail": "One sentence" }],
 
-  "today_moves": [
-    { "action": "Same-day action", "bump_percentile": 3, "detail": "One sentence" }
-  ],
+  "today_moves": [{ "action": "Same-day action", "bump_tiers": 0, "bump_placement": 2, "detail": "One sentence" }],
+  "regimen_moves": [{ "action": "90-day commitment", "bump_tiers": 1, "bump_placement": 3, "detail": "One sentence" }],
 
-  "regimen_moves": [
-    { "action": "90-day commitment", "bump_percentile": 10, "detail": "One sentence" }
-  ],
-
-  "looksmaxxing": [
-    {
-      "technique": "Name",
-      "target": "Problem addressed",
-      "roi": "high",
-      "detail": "2-3 sentences.",
-      "evidence": "established"
-    }
-  ]
+  "looksmaxxing": [{
+    "technique": "Name", "target": "Problem", "roi": "high",
+    "detail": "2-3 sentences.", "evidence": "established"
+  }]
 }
 
-CRITICAL — ATTRACTIVENESS_PERCENTILE (1-99):
-This is the MOST IMPORTANT field. Answer the question: "What percentage of the general adult population is this person MORE ATTRACTIVE than?"
+=== TIER SYSTEM (MOST IMPORTANT) ===
 
-This is NOT a 1-10 score. It's a percentile. Think about it concretely:
-- If you lined up 100 random adults, where would this person rank?
+You MUST pick exactly ONE tier for overall attractiveness. This is a CATEGORICAL judgment, not a number.
 
-CALIBRATION:
-- 1-5: Among the least attractive. Severe structural issues, deformity
-- 5-15: Well below average. Obvious flaws most people would notice
-- 15-30: Below average. Multiple unflattering features
-- 30-45: Slightly below average
-- 45-55: Dead average. Unremarkable
-- 55-70: Above average. Some attractive features
-- 70-85: Clearly attractive. Most people would agree this person is good-looking
-- 85-93: Very attractive. Turns heads. Top 10-15% of population
-- 93-97: Exceptionally attractive. Model-tier. Top 3-7%
-- 97-99: Strikingly beautiful. Top 1-3%. Elite bone structure, harmony, presence
+Read each tier description. Pick the ONE that best matches what you see. Be honest.
 
-CONCRETE EXAMPLES to anchor your judgment:
-- An elderly person with age-related changes, round face, no notable bone structure = 15-25th percentile
-- Average office worker, nothing special, nothing bad = 45-55th percentile  
-- Someone with one or two good features but overall unremarkable = 55-65th percentile
-- Clearly good-looking person who gets compliments = 75-85th percentile
-- Someone who could model professionally, exceptional proportions = 93-97th percentile
-- Perfect bone structure, ideal harmony, striking presence = 97-99th percentile
+TIER 1 — WELL BELOW AVERAGE
+"Most people would immediately notice significant unattractiveness."
+Obvious structural problems. Features that draw negative attention. Facial deformity, extreme asymmetry, or severely unflattering proportions.
 
-The percentile should MATCH COMMON SENSE. If most people would look at this photo and think "wow, extremely attractive" → 93+. If most would think "below average" → 25-35. Trust your eyes.
+TIER 2 — BELOW AVERAGE  
+"Noticeably less attractive than most people."
+Multiple unflattering features. Weak bone structure, poor proportions, or aging that significantly impacts appearance. Most observers would rate below average.
 
-PRESENTATION PERCENTILES (1-99): Same logic — where does each factor rank vs general population?
-1-10: Terrible. 10-30: Poor. 30-50: Below avg. 50: Average. 50-70: Above avg. 70-90: Good. 90-99: Exceptional.
+TIER 3 — SLIGHTLY BELOW AVERAGE
+"Unremarkable, leaning unflattering."
+Nothing severely wrong, but nothing that stands out positively. Features that are somewhat unflattering but not dramatically so.
 
-TODAY MOVES (3-5): Achievable in hours. bump_percentile = how many percentile points this adds (1-8).
-90-DAY REGIMEN (3-5): Long-term physiological changes ONLY. NOT grooming. bump_percentile = percentile points gained (5-25).
-- Body fat reduction to 10-15% is the BIGGEST lever. If not lean, this is item #1 with bump of 15-25 percentile points. It transforms jawline, cheekbones, and overall facial harmony dramatically.
-- Consistent retinol + SPF (5-10 points), posture correction (3-7), resistance training for neck/traps (3-7), dental alignment (3-5).
-- Do NOT recommend low-impact generic health tips. Only things with VISIBLE facial impact.
+TIER 4 — AVERAGE
+"Blends into a crowd. Neither attractive nor unattractive."
+Completely unremarkable. The kind of face you pass on the street and don't remember. No standout features in either direction.
 
-LOOKSMAXXING (3-6): Match weaknesses to techniques. Only RELEVANT ones.
+TIER 5 — ABOVE AVERAGE
+"Noticeably good-looking. Gets occasional compliments."
+Some genuinely attractive features. Most people would agree this person is better-looking than average. Could be a local news anchor, the good-looking person in an office.
+
+TIER 6 — VERY ATTRACTIVE
+"Turns heads. Undeniably good-looking to almost everyone."
+Strong bone structure, good proportions, attractive features. People notice when this person walks into a room. Could model for regional brands. Top 10-15% of population.
+
+TIER 7 — EXCEPTIONALLY ATTRACTIVE
+"Strikingly beautiful. Professional model or actor tier."
+Elite bone structure, near-ideal proportions, powerful facial harmony. The kind of face that stops conversations. Top 1-5% of population. Could be a lead actor or high-fashion model.
+
+TIER PLACEMENT (1-10): Where within the tier does this person fall?
+1 = barely qualifies for this tier (almost the tier below)
+5 = solidly in the middle of this tier
+10 = at the very top of this tier (almost the tier above)
+
+DECISION PROCESS — answer these in your head before choosing:
+1. "Would most people call this person attractive?" → If clearly yes, tier 5+
+2. "Does this person turn heads?" → If yes, tier 6+
+3. "Could this person be a professional model/actor based on looks alone?" → If yes, tier 7
+4. "Would most people consider this person below average?" → If yes, tier 1-3
+
+TEST YOUR ANSWER: Does your tier match the gut reaction most humans would have seeing this face? If it doesn't, change it.
+
+=== PRESENTATION TIERS (same 1-7 system) ===
+Apply the same tier logic to each presentation factor.
+
+=== OPTIMIZATION ===
+TODAY MOVES (3-5): Same-day actions. bump_tiers = 0 usually, bump_placement = 1-4.
+REGIMEN (3-5): 90-day commitments. bump_tiers = 0-1, bump_placement = 1-8.
+- Body fat reduction to 10-15% is the BIGGEST lever. If not lean, this is #1. bump_tiers: 1, bump_placement: 5-8. Transforms jawline, cheekbones, facial harmony.
+- Retinol + SPF skincare, posture correction, neck/trap training, dental work.
+- Do NOT recommend low-impact generic tips. Only VISIBLE facial impact.
+
+LOOKSMAXXING (3-6): Match weaknesses to techniques. Only relevant ones.
 
 No celebrity names. No disclaimers. Clinical and direct.`;
 }
