@@ -15,7 +15,7 @@ Analyze the face in this photo. Respond with ONLY valid JSON — no markdown, no
 
 {
   "opening": "One razor-sharp sentence — the single most striking thing about this face.",
-  "personality": "One to two rich paragraphs. Read bone structure for strengths and vulnerabilities. Strong jaw = willpower but stubbornness. Midface harmony = trustworthiness but getting taken for granted. Eye shape tells the three-second story. Real-world translation: apps, interviews, group settings. Be objective — note limitations alongside strengths.",
+  "personality": "Two to three rich paragraphs. Go deep. Read bone structure for strengths and vulnerabilities. Strong jaw = willpower but stubbornness. Midface harmony = trustworthiness but getting taken for granted. Eye shape tells the three-second story. Cover: how this face reads in dating apps, job interviews, group dynamics, first dates, and leadership contexts. What does this face signal unconsciously? What do people project onto it? Where does it win and where does it get overlooked? Be specific and grounded, not flattering.",
   "shadow": "Concise paragraph on vulnerabilities and blind spots. The tax on the architecture. Honest and direct.",
   "rating": 7.2,
   "rating_context": "One sentence contextualizing where this face sits on the scale based on structural elements. Do NOT reference any celebrities or public figures by name. Be clinically honest.",
@@ -28,21 +28,26 @@ Analyze the face in this photo. Respond with ONLY valid JSON — no markdown, no
     },
     "fwhr": {
       "value": 1.85,
-      "note": "The facial width-to-height ratio as a number (average ~1.8-2.0). One sentence on what this signals."
+      "note": "The facial width-to-height ratio as a number. Average is 1.8-2.0. One sentence on what this signals."
     },
     "canthal_tilt": {
       "direction": "positive",
       "degrees": 4,
-      "note": "One sentence. Direction is positive/neutral/negative. Degrees is estimated tilt angle."
+      "note": "One sentence. Direction is positive/neutral/negative. Degrees is estimated tilt angle. Neutral is 0 degrees."
     },
     "facial_thirds": {
       "balance": "balanced",
-      "note": "One sentence. Balance is balanced/top-heavy/mid-heavy/bottom-heavy. Describe which third dominates or if proportional."
+      "note": "One sentence. Balance is one of: balanced, top-heavy, mid-heavy, bottom-heavy."
     },
     "jawline": {
       "score": 7.5,
       "note": "One concise sentence on definition, angularity, and structural presence."
     }
+  },
+  "body_composition": {
+    "current_bf_estimate": "18%",
+    "target_bf": "13%",
+    "note": "One to two sentences on how body fat percentage affects facial definition for this person specifically. What would change visually at the target? For women, target should be 18-22%. For men, 10-15%. Be realistic based on what you see."
   },
   "best_angle": {
     "side": "left",
