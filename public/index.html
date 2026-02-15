@@ -9,18 +9,12 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    background: #080808;
-    color: #c8c8c8;
-    font-family: 'DM Sans', sans-serif;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    padding: 48px 20px;
-    -webkit-font-smoothing: antialiased;
+    background: #080808; color: #c8c8c8; font-family: 'DM Sans', sans-serif;
+    min-height: 100vh; display: flex; justify-content: center;
+    padding: 48px 20px; -webkit-font-smoothing: antialiased;
   }
   .wrap { width: 100%; max-width: 540px; display: flex; flex-direction: column; align-items: center; gap: 28px; }
 
-  /* Upload screen */
   .upload-screen { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 24px; }
   .logo { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
   .logo-dot { width: 5px; height: 5px; border-radius: 50%; background: #fff; }
@@ -39,10 +33,7 @@
   .drop-hint small { font-size: 11px; color: #2a2a2a; }
 
   .preview-wrap { position: relative; width: 100%; }
-  .preview-wrap img {
-    width: 100%; max-height: 500px; object-fit: contain; border-radius: 13px; display: block;
-    background: #0a0a0a;
-  }
+  .preview-wrap img { width: 100%; max-height: 500px; object-fit: contain; border-radius: 13px; display: block; background: #0a0a0a; }
   .remove-btn {
     position: absolute; top: 10px; right: 10px; width: 28px; height: 28px; border-radius: 50%;
     border: none; background: rgba(0,0,0,.65); color: #777; font-size: 12px; cursor: pointer;
@@ -51,39 +42,32 @@
 
   .analyze-btn {
     width: 100%; padding: 14px 0; background: #fff; color: #000; border: none; border-radius: 10px;
-    font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; letter-spacing: 0.02em;
+    font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer;
   }
   .analyze-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-  /* Scan Screen */
+  /* Scan */
   .scan-screen { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 20px; }
-  .scan-container {
-    width: 100%; position: relative; border-radius: 14px; overflow: hidden; background: #0a0a0a;
-  }
-  .scan-container img {
-    width: 100%; max-height: 500px; object-fit: contain; display: block; background: #0a0a0a;
-  }
+  .scan-container { width: 100%; position: relative; border-radius: 14px; overflow: hidden; background: #0a0a0a; }
+  .scan-container img { width: 100%; max-height: 500px; object-fit: contain; display: block; background: #0a0a0a; }
   .scan-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
   .scan-text { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
   .scan-text h2 { font-family: 'Instrument Serif', serif; font-size: 22px; color: #ddd; font-weight: 400; }
-  .scan-phase { font-size: 10px; color: #333; letter-spacing: 0.1em; text-transform: uppercase; min-height: 14px; }
+  .scan-phase { font-size: 10px; color: #333; letter-spacing: 0.1em; text-transform: uppercase; min-height: 14px; font-family: 'DM Mono', monospace; }
   .progress-wrap { width: 100%; max-width: 280px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
   .progress-track { width: 100%; height: 2px; background: #161616; border-radius: 1px; overflow: hidden; }
   .progress-fill { width: 0%; height: 100%; background: #555; border-radius: 1px; transition: width 0.3s ease-out; }
-  .progress-label { font-size: 10px; color: #282828; font-variant-numeric: tabular-nums; letter-spacing: 0.06em; }
+  .progress-label { font-size: 10px; color: #282828; font-variant-numeric: tabular-nums; font-family: 'DM Mono', monospace; }
 
   /* Error */
   .error-box { width: 100%; padding: 16px 18px; background: #140c0c; border: 1px solid #2a1515; border-radius: 10px; }
   .error-box p { font-size: 12px; color: #cc6666; line-height: 1.6; }
-  .error-box button {
-    margin-top: 12px; padding: 8px 16px; background: transparent; color: #666;
-    border: 1px solid #2a1515; border-radius: 6px; font-size: 12px; cursor: pointer; font-family: 'DM Sans', sans-serif;
-  }
+  .error-box button { margin-top: 12px; padding: 8px 16px; background: transparent; color: #666; border: 1px solid #2a1515; border-radius: 6px; font-size: 12px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
 
   /* Report */
   .report { width: 100%; display: flex; flex-direction: column; gap: 40px; }
   .hr { height: 1px; background: #111; }
-  .body-text { font-size: 14px; line-height: 1.9; color: #8a8a8a; font-weight: 300; letter-spacing: 0.005em; }
+  .body-text { font-size: 14px; line-height: 1.9; color: #8a8a8a; font-weight: 300; }
 
   /* Hero */
   .hero { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; }
@@ -97,7 +81,7 @@
   /* Section headers */
   .sec-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 20px; }
   .sec-num { font-size: 10px; color: #252525; font-variant-numeric: tabular-nums; letter-spacing: 0.06em; font-weight: 500; }
-  .sec-label { font-size: 10px; color: #404040; text-transform: uppercase; letter-spacing: 0.16em; font-weight: 400; }
+  .sec-label { font-size: 10px; color: #404040; text-transform: uppercase; letter-spacing: 0.16em; }
   .sec-line { flex: 1; height: 1px; background: #151515; }
 
   /* Rating */
@@ -113,31 +97,43 @@
   .rating-context { font-size: 12px; line-height: 1.7; font-weight: 300; color: #505050; }
   .scale-note { font-size: 10px; color: #282828; line-height: 1.6; margin-top: 8px; padding-top: 8px; border-top: 1px solid #111; }
 
-  /* Metrics grid */
+  /* Metrics */
   .metrics-grid { display: flex; flex-direction: column; gap: 0; }
-  .metric-row {
-    display: flex; align-items: baseline; padding: 14px 0;
-    border-bottom: 1px solid #0f0f0f;
+  .metric-item { padding: 16px 0; border-bottom: 1px solid #0f0f0f; }
+  .metric-item:last-child { border-bottom: none; }
+  .metric-top { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; }
+  .metric-name { font-size: 10px; color: #404040; text-transform: uppercase; letter-spacing: 0.1em; min-width: 100px; }
+  .metric-value { font-family: 'DM Mono', monospace; font-size: 15px; color: #b0b0b0; min-width: 56px; }
+  .metric-note { font-size: 11px; color: #3a3a3a; line-height: 1.6; font-weight: 300; flex: 1; }
+  .metric-avg { font-size: 9px; color: #252525; font-family: 'DM Mono', monospace; margin-left: 4px; }
+  /* Scale bar */
+  .metric-scale { display: flex; align-items: center; gap: 8px; margin-top: 8px; padding-left: 112px; }
+  .scale-track { flex: 1; height: 3px; background: #111; border-radius: 2px; position: relative; max-width: 220px; }
+  .scale-dot {
+    position: absolute; top: 50%; width: 8px; height: 8px; border-radius: 50%;
+    background: #888; transform: translate(-50%, -50%); transition: left 0.6s ease-out;
   }
-  .metric-row:last-child { border-bottom: none; }
-  .metric-name {
-    width: 120px; flex-shrink: 0; font-size: 10px; color: #404040;
-    text-transform: uppercase; letter-spacing: 0.1em; font-weight: 400;
+  .scale-avg-mark {
+    position: absolute; top: -3px; bottom: -3px; width: 1px; background: #222;
   }
-  .metric-value {
-    width: 72px; flex-shrink: 0; font-family: 'DM Mono', monospace;
-    font-size: 16px; color: #b0b0b0; font-weight: 400;
-  }
-  .metric-note { flex: 1; font-size: 11px; color: #3a3a3a; line-height: 1.6; font-weight: 300; }
+  .scale-labels { display: flex; justify-content: space-between; width: 100%; max-width: 220px; margin-left: 112px; margin-top: 2px; }
+  .scale-lbl { font-size: 8px; color: #1e1e1e; text-transform: uppercase; letter-spacing: 0.08em; }
 
-  /* Best angle */
-  .angle-card {
-    border: 1px solid #161616; border-radius: 12px; padding: 18px 20px; background: #0a0a0a;
-    display: flex; align-items: flex-start; gap: 16px;
+  /* Body comp */
+  .body-comp {
+    border: 1px solid #161616; border-radius: 12px; padding: 20px; background: #0a0a0a;
   }
-  .angle-icon {
-    width: 36px; height: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-  }
+  .body-comp-header { display: flex; align-items: baseline; gap: 16px; margin-bottom: 10px; }
+  .bf-stat { display: flex; flex-direction: column; align-items: center; }
+  .bf-label { font-size: 9px; color: #303030; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px; }
+  .bf-value { font-family: 'DM Mono', monospace; font-size: 20px; color: #b0b0b0; }
+  .bf-arrow { font-size: 16px; color: #252525; padding-top: 10px; }
+  .bf-target .bf-value { color: #6a9a6a; }
+  .body-comp p { font-size: 12px; color: #505050; line-height: 1.7; font-weight: 300; margin-top: 10px; }
+
+  /* Angle */
+  .angle-card { border: 1px solid #161616; border-radius: 12px; padding: 18px 20px; background: #0a0a0a; display: flex; align-items: flex-start; gap: 16px; }
+  .angle-icon { width: 36px; height: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
   .angle-body { flex: 1; }
   .angle-body h4 { font-size: 13px; color: #aaa; font-weight: 500; margin-bottom: 4px; }
   .angle-body p { font-size: 12px; color: #505050; line-height: 1.7; font-weight: 300; }
@@ -161,7 +157,6 @@
   .impact-fill { height: 100%; border-radius: 2px; }
   .impact-label { font-size: 9px; color: #282828; text-transform: uppercase; letter-spacing: 0.1em; }
 
-  /* Footer */
   .footer { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 16px 0 32px; }
   .footer-dot { width: 4px; height: 4px; border-radius: 50%; background: #1e1e1e; }
   .footer span { font-size: 11px; color: #1e1e1e; letter-spacing: 0.1em; font-weight: 300; }
@@ -173,19 +168,24 @@
   }
 
   .hidden { display: none !important; }
+
+  @media (max-width: 480px) {
+    .metric-scale { padding-left: 0; }
+    .scale-labels { margin-left: 0; }
+    .metric-top { flex-wrap: wrap; }
+    .metric-note { min-width: 100%; margin-top: 4px; }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <!-- UPLOAD SCREEN -->
   <div id="upload-screen" class="upload-screen">
     <div class="logo">
       <div class="logo-dot"></div>
       <h1>Read</h1>
       <p>Upload a photo. Get the structural read.</p>
     </div>
-
     <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
       <input type="file" id="file-input" accept="image/*">
       <div class="drop-hint" id="drop-hint">
@@ -198,11 +198,9 @@
         <button class="remove-btn" id="remove-btn" onclick="event.stopPropagation(); resetAll();">&#10005;</button>
       </div>
     </div>
-
     <button class="analyze-btn hidden" id="analyze-btn" onclick="analyze()">Analyze</button>
   </div>
 
-  <!-- SCAN SCREEN -->
   <div id="scan-screen" class="scan-screen hidden">
     <div class="scan-container" id="scan-container">
       <img id="scan-img" src="" alt="">
@@ -212,23 +210,18 @@
       <h2>Reading the architecture</h2>
       <span class="scan-phase" id="scan-phase"></span>
       <div class="progress-wrap">
-        <div class="progress-track">
-          <div class="progress-fill" id="progress-fill"></div>
-        </div>
+        <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
         <span class="progress-label" id="progress-label">0%</span>
       </div>
     </div>
   </div>
 
-  <!-- ERROR -->
   <div id="error-box" class="error-box hidden">
     <p id="error-msg"></p>
     <button onclick="resetAll()">Try Again</button>
   </div>
 
-  <!-- REPORT -->
   <div id="report" class="report hidden"></div>
-
 </div>
 
 <script>
@@ -236,7 +229,6 @@ let compressedBase64 = null;
 let previewURL = null;
 let scanAnimationId = null;
 let progressInterval = null;
-let phaseInterval = null;
 
 document.getElementById('file-input').addEventListener('change', function(e) {
   const file = e.target.files[0];
@@ -254,7 +246,6 @@ function compressImage(file) {
   document.getElementById('preview-wrap').classList.remove('hidden');
   document.getElementById('drop-zone').classList.add('has-img');
   document.getElementById('drop-zone').onclick = null;
-
   const reader = new FileReader();
   reader.onload = function() {
     const img = new Image();
@@ -281,7 +272,7 @@ function compressImage(file) {
   reader.readAsDataURL(file);
 }
 
-// ============ BIOMETRIC SCAN ANIMATION ============
+// ============ HUD SCAN ANIMATION ============
 
 function startScanAnimation() {
   const canvas = document.getElementById('scan-canvas');
@@ -292,271 +283,138 @@ function startScanAnimation() {
     const rect = container.getBoundingClientRect();
     const W = canvas.width = rect.width;
     const H = canvas.height = rect.height;
-
-    // Face center estimate — center-ish, slightly above middle
-    const cx = W * 0.5;
-    const cy = H * 0.42;
-    const faceW = Math.min(W, H) * 0.38;
-    const faceH = faceW * 1.35;
-
-    // Define anatomical landmarks relative to face center
-    const landmarks = {
-      // Forehead
-      foreheadCenter: { x: cx, y: cy - faceH * 0.42 },
-      // Eyes
-      leftEyeInner:  { x: cx - faceW * 0.12, y: cy - faceH * 0.08 },
-      leftEyeOuter:  { x: cx - faceW * 0.3,  y: cy - faceH * 0.1  },
-      leftEyeCenter: { x: cx - faceW * 0.21, y: cy - faceH * 0.09 },
-      rightEyeInner: { x: cx + faceW * 0.12, y: cy - faceH * 0.08 },
-      rightEyeOuter: { x: cx + faceW * 0.3,  y: cy - faceH * 0.1  },
-      rightEyeCenter:{ x: cx + faceW * 0.21, y: cy - faceH * 0.09 },
-      // Eyebrows
-      leftBrowPeak:  { x: cx - faceW * 0.24, y: cy - faceH * 0.18 },
-      rightBrowPeak: { x: cx + faceW * 0.24, y: cy - faceH * 0.18 },
-      // Nose
-      noseBridge:    { x: cx, y: cy - faceH * 0.04 },
-      noseTip:       { x: cx, y: cy + faceH * 0.1 },
-      leftNostril:   { x: cx - faceW * 0.08, y: cy + faceH * 0.13 },
-      rightNostril:  { x: cx + faceW * 0.08, y: cy + faceH * 0.13 },
-      // Mouth
-      leftMouth:     { x: cx - faceW * 0.16, y: cy + faceH * 0.24 },
-      rightMouth:    { x: cx + faceW * 0.16, y: cy + faceH * 0.24 },
-      upperLip:      { x: cx, y: cy + faceH * 0.21 },
-      lowerLip:      { x: cx, y: cy + faceH * 0.28 },
-      // Jaw & chin
-      chin:          { x: cx, y: cy + faceH * 0.44 },
-      leftJaw:       { x: cx - faceW * 0.38, y: cy + faceH * 0.18 },
-      rightJaw:      { x: cx + faceW * 0.38, y: cy + faceH * 0.18 },
-      leftCheek:     { x: cx - faceW * 0.36, y: cy - faceH * 0.02 },
-      rightCheek:    { x: cx + faceW * 0.36, y: cy - faceH * 0.02 },
-      // Ears
-      leftEar:       { x: cx - faceW * 0.46, y: cy - faceH * 0.04 },
-      rightEar:      { x: cx + faceW * 0.46, y: cy - faceH * 0.04 },
-    };
-
-    // Measurement connections grouped by phase
-    const phases = [
-      {
-        name: 'Mapping landmarks',
-        points: ['foreheadCenter','leftEyeCenter','rightEyeCenter','noseBridge','noseTip','upperLip','chin'],
-        lines: [
-          ['foreheadCenter','noseBridge'],['noseBridge','noseTip'],['noseTip','upperLip'],['upperLip','chin']
-        ],
-        labels: []
-      },
-      {
-        name: 'Measuring symmetry',
-        points: ['leftEyeInner','leftEyeOuter','rightEyeInner','rightEyeOuter','leftBrowPeak','rightBrowPeak'],
-        lines: [
-          ['leftEyeOuter','leftEyeInner'],['rightEyeInner','rightEyeOuter'],
-          ['leftBrowPeak','leftEyeCenter'],['rightBrowPeak','rightEyeCenter'],
-          ['leftEyeCenter','rightEyeCenter']
-        ],
-        labels: [{ at: 'rightEyeOuter', text: 'CANTHAL TILT', ox: 12, oy: -8 }]
-      },
-      {
-        name: 'Calculating FWHR',
-        points: ['leftCheek','rightCheek','leftNostril','rightNostril','leftEar','rightEar'],
-        lines: [
-          ['leftCheek','rightCheek'],
-          ['leftEar','leftCheek'],['rightEar','rightCheek'],
-          ['leftNostril','rightNostril']
-        ],
-        labels: [
-          { at: 'rightCheek', text: 'FWHR', ox: 10, oy: 0 },
-        ]
-      },
-      {
-        name: 'Analyzing proportions',
-        points: ['leftMouth','rightMouth','lowerLip','leftJaw','rightJaw'],
-        lines: [
-          ['leftMouth','rightMouth'],['upperLip','lowerLip'],
-          ['leftJaw','chin'],['rightJaw','chin'],
-          ['leftJaw','leftCheek'],['rightJaw','rightCheek']
-        ],
-        labels: [
-          { at: 'rightJaw', text: 'JAWLINE', ox: 10, oy: 4 },
-        ]
-      }
-    ];
-
-    // Flatten all for rendering
-    const allPointKeys = new Set();
-    const allLines = [];
-    const allLabels = [];
-    let phaseTimings = []; // [startMs, endMs]
-
-    const phaseDuration = 2800;
-    const phaseGap = 200;
-    phases.forEach((phase, pi) => {
-      const start = pi * (phaseDuration + phaseGap);
-      const end = start + phaseDuration;
-      phaseTimings.push({ start, end, phase });
-    });
-
-    const totalDuration = phases.length * (phaseDuration + phaseGap);
-
+    const cx = W / 2, cy = H / 2;
     const startTime = Date.now();
-    let currentPhaseIdx = -1;
+
+    const phases = [
+      'DETECTING FACIAL STRUCTURE',
+      'MAPPING SYMMETRY AXIS',
+      'CALCULATING FWHR',
+      'MEASURING CANTHAL TILT',
+      'ANALYZING PROPORTIONS',
+      'EVALUATING JAWLINE',
+      'COMPUTING FACIAL THIRDS',
+      'GENERATING REPORT'
+    ];
 
     function draw() {
       const elapsed = Date.now() - startTime;
-      const loopElapsed = elapsed % (totalDuration + 2000); // loop with pause
       ctx.clearRect(0, 0, W, H);
 
       // Dark overlay
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
       ctx.fillRect(0, 0, W, H);
 
-      // Symmetry midline (always visible, subtle)
+      // Grid lines
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.025)';
+      ctx.lineWidth = 0.5;
+      const gridSpacing = 40;
+      for (let x = gridSpacing; x < W; x += gridSpacing) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+      }
+      for (let y = gridSpacing; y < H; y += gridSpacing) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+      }
+
+      // Scan line (horizontal sweep)
+      const scanY = ((elapsed * 0.08) % (H + 60)) - 30;
+      const scanGrad = ctx.createLinearGradient(0, scanY - 20, 0, scanY + 20);
+      scanGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+      scanGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.08)');
+      scanGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = scanGrad;
+      ctx.fillRect(0, scanY - 20, W, 40);
+
+      // Thin bright scan line
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(0, scanY); ctx.lineTo(W, scanY); ctx.stroke();
+
+      // Center crosshair
+      const chSize = Math.min(W, H) * 0.08;
+      const chGap = 6;
+      const chAlpha = 0.12 + Math.sin(elapsed * 0.003) * 0.04;
+      ctx.strokeStyle = `rgba(255, 255, 255, ${chAlpha})`;
+      ctx.lineWidth = 1;
+      // Top
+      ctx.beginPath(); ctx.moveTo(cx, cy - chSize); ctx.lineTo(cx, cy - chGap); ctx.stroke();
+      // Bottom
+      ctx.beginPath(); ctx.moveTo(cx, cy + chGap); ctx.lineTo(cx, cy + chSize); ctx.stroke();
+      // Left
+      ctx.beginPath(); ctx.moveTo(cx - chSize, cy); ctx.lineTo(cx - chGap, cy); ctx.stroke();
+      // Right
+      ctx.beginPath(); ctx.moveTo(cx + chGap, cy); ctx.lineTo(cx + chSize, cy); ctx.stroke();
+
+      // Rotating measurement arc
+      const arcR = Math.min(W, H) * 0.22;
+      const arcAngle = elapsed * 0.0015;
+      const arcLen = Math.PI * 0.4;
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
       ctx.lineWidth = 1;
-      ctx.setLineDash([4, 6]);
       ctx.beginPath();
-      ctx.moveTo(cx, cy - faceH * 0.52);
-      ctx.lineTo(cx, cy + faceH * 0.52);
+      ctx.arc(cx, cy, arcR, arcAngle, arcAngle + arcLen);
       ctx.stroke();
-      ctx.setLineDash([]);
+      // Second arc opposite
+      ctx.beginPath();
+      ctx.arc(cx, cy, arcR, arcAngle + Math.PI, arcAngle + Math.PI + arcLen);
+      ctx.stroke();
 
-      // Facial thirds guides (horizontal, subtle)
-      const thirdsY = [cy - faceH * 0.18, cy + faceH * 0.1, cy + faceH * 0.24];
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
-      ctx.lineWidth = 1;
-      thirdsY.forEach(y => {
-        ctx.beginPath();
-        ctx.moveTo(cx - faceW * 0.42, y);
-        ctx.lineTo(cx + faceW * 0.42, y);
-        ctx.stroke();
-      });
+      // Inner rotating arc (smaller, opposite direction)
+      const arcR2 = Math.min(W, H) * 0.15;
+      const arcAngle2 = -elapsed * 0.001;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+      ctx.beginPath();
+      ctx.arc(cx, cy, arcR2, arcAngle2, arcAngle2 + arcLen * 0.6);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(cx, cy, arcR2, arcAngle2 + Math.PI, arcAngle2 + Math.PI + arcLen * 0.6);
+      ctx.stroke();
 
       // Corner brackets
-      const bLen = 20, bPad = 14;
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      const bLen = 22, bPad = 14;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
       ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(bPad, bPad + bLen); ctx.lineTo(bPad, bPad); ctx.lineTo(bPad + bLen, bPad); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(bPad, bPad+bLen); ctx.lineTo(bPad, bPad); ctx.lineTo(bPad+bLen, bPad); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(W-bPad-bLen, bPad); ctx.lineTo(W-bPad, bPad); ctx.lineTo(W-bPad, bPad+bLen); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(bPad, H-bPad-bLen); ctx.lineTo(bPad, H-bPad); ctx.lineTo(bPad+bLen, H-bPad); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(W-bPad-bLen, H-bPad); ctx.lineTo(W-bPad, H-bPad); ctx.lineTo(W-bPad, H-bPad-bLen); ctx.stroke();
 
-      // Determine which phases are active
-      let activePoints = new Set();
-      let activeLines = [];
-      let activeLabels = [];
-
-      phaseTimings.forEach((pt, idx) => {
-        const phaseProgress = Math.max(0, Math.min(1, (loopElapsed - pt.start) / phaseDuration));
-        if (phaseProgress <= 0) return;
-
-        const phase = pt.phase;
-        const pointProgress = Math.min(1, phaseProgress * 2.5); // points appear fast
-        const lineProgress = Math.max(0, Math.min(1, (phaseProgress - 0.15) * 1.8));
-        const labelProgress = Math.max(0, Math.min(1, (phaseProgress - 0.5) * 2.5));
-
-        // Points for this phase
-        const numPts = Math.floor(phase.points.length * pointProgress);
-        for (let i = 0; i < numPts; i++) {
-          activePoints.add(phase.points[i]);
-        }
-
-        // Lines for this phase
-        const numLines = Math.floor(phase.lines.length * lineProgress);
-        for (let i = 0; i < numLines; i++) {
-          activeLines.push({ from: phase.lines[i][0], to: phase.lines[i][1], alpha: Math.min(1, lineProgress) });
-        }
-
-        // Labels
-        phase.labels.forEach(lbl => {
-          if (labelProgress > 0) {
-            activeLabels.push({ ...lbl, alpha: labelProgress });
-          }
-        });
-
-        // Update phase text
-        if (phaseProgress > 0 && phaseProgress < 1) {
-          const phaseEl = document.getElementById('scan-phase');
-          if (phaseEl) phaseEl.textContent = phase.name;
-        }
-      });
-
-      // Draw measurement lines
-      activeLines.forEach(line => {
-        const from = landmarks[line.from];
-        const to = landmarks[line.to];
-        if (!from || !to) return;
-
-        ctx.strokeStyle = `rgba(255, 255, 255, ${0.12 * line.alpha})`;
-        ctx.lineWidth = 0.8;
-        ctx.beginPath();
-        ctx.moveTo(from.x, from.y);
-        ctx.lineTo(to.x, to.y);
-        ctx.stroke();
-
-        // Tiny measurement tick marks at ends
-        const angle = Math.atan2(to.y - from.y, to.x - from.x);
-        const perpAngle = angle + Math.PI / 2;
-        const tickLen = 3;
-        ctx.strokeStyle = `rgba(255, 255, 255, ${0.15 * line.alpha})`;
-        [from, to].forEach(pt => {
-          ctx.beginPath();
-          ctx.moveTo(pt.x - Math.cos(perpAngle) * tickLen, pt.y - Math.sin(perpAngle) * tickLen);
-          ctx.lineTo(pt.x + Math.cos(perpAngle) * tickLen, pt.y + Math.sin(perpAngle) * tickLen);
-          ctx.stroke();
-        });
-      });
-
-      // Draw landmark points
-      activePoints.forEach(key => {
-        const pt = landmarks[key];
-        if (!pt) return;
-        const pulse = Math.sin(elapsed * 0.004 + pt.x * 0.01) * 0.3 + 0.7;
-
-        // Outer glow
-        ctx.beginPath();
-        ctx.arc(pt.x, pt.y, 5, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${0.04 * pulse})`;
-        ctx.fill();
-
-        // Ring
-        ctx.beginPath();
-        ctx.arc(pt.x, pt.y, 2.5, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(255, 255, 255, ${0.35 * pulse})`;
-        ctx.lineWidth = 0.6;
-        ctx.stroke();
-
-        // Center dot
-        ctx.beginPath();
-        ctx.arc(pt.x, pt.y, 1, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${0.6 * pulse})`;
-        ctx.fill();
-      });
-
-      // Draw labels
+      // Data readout text
+      const phaseIdx = Math.floor((elapsed / 2200) % phases.length);
+      const phaseText = phases[phaseIdx];
       ctx.font = '9px "DM Mono", monospace';
-      activeLabels.forEach(lbl => {
-        const pt = landmarks[lbl.at];
-        if (!pt) return;
-        ctx.fillStyle = `rgba(255, 255, 255, ${0.3 * lbl.alpha})`;
-        ctx.fillText(lbl.text, pt.x + (lbl.ox || 0), pt.y + (lbl.oy || 0));
-      });
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+      ctx.fillText(phaseText, bPad + 4, H - bPad - 8);
+
+      // Top-right timestamp-style readout
+      const fakeData = [
+        'SYM: ' + (5 + Math.sin(elapsed * 0.001) * 2).toFixed(1),
+        'FWHR: ' + (1.7 + Math.sin(elapsed * 0.0008) * 0.3).toFixed(2),
+        'CT: ' + (Math.sin(elapsed * 0.0012) * 5).toFixed(1) + '°'
+      ];
+      const dataIdx = Math.floor((elapsed / 1600) % fakeData.length);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+      ctx.textAlign = 'right';
+      ctx.fillText(fakeData[dataIdx], W - bPad - 4, bPad + 14);
+      ctx.textAlign = 'left';
+
+      // Update phase text below image
+      const phaseEl = document.getElementById('scan-phase');
+      if (phaseEl) phaseEl.textContent = phaseText;
 
       scanAnimationId = requestAnimationFrame(draw);
     }
-
     draw();
   }
 
   const img = document.getElementById('scan-img');
-  if (img.complete && img.naturalHeight > 0) {
-    setTimeout(initCanvas, 80);
-  } else {
-    img.onload = () => setTimeout(initCanvas, 80);
-  }
+  if (img.complete && img.naturalHeight > 0) setTimeout(initCanvas, 80);
+  else img.onload = () => setTimeout(initCanvas, 80);
 }
 
 function stopScanAnimation() {
   if (scanAnimationId) { cancelAnimationFrame(scanAnimationId); scanAnimationId = null; }
   if (progressInterval) { clearInterval(progressInterval); progressInterval = null; }
-  if (phaseInterval) { clearInterval(phaseInterval); phaseInterval = null; }
 }
 
 function startProgress() {
@@ -575,17 +433,14 @@ function startProgress() {
 
 function finishProgress() {
   if (progressInterval) { clearInterval(progressInterval); progressInterval = null; }
-  const fill = document.getElementById('progress-fill');
-  const label = document.getElementById('progress-label');
-  fill.style.width = '100%';
-  label.textContent = '100%';
+  document.getElementById('progress-fill').style.width = '100%';
+  document.getElementById('progress-label').textContent = '100%';
 }
 
 // ============ ANALYZE ============
 
 async function analyze() {
   if (!compressedBase64) return;
-
   document.getElementById('upload-screen').classList.add('hidden');
   document.getElementById('scan-screen').classList.remove('hidden');
   hideError();
@@ -593,7 +448,6 @@ async function analyze() {
   document.getElementById('progress-fill').style.width = '0%';
   document.getElementById('progress-label').textContent = '0%';
   document.getElementById('scan-phase').textContent = '';
-
   startScanAnimation();
   startProgress();
 
@@ -606,9 +460,8 @@ async function analyze() {
     const data = await resp.json();
     if (!resp.ok || data.error) throw new Error(data.error || 'Status ' + resp.status);
     if (!data.opening || data.rating === undefined) throw new Error('Incomplete response.');
-
     finishProgress();
-    document.getElementById('scan-phase').textContent = 'Analysis complete';
+    document.getElementById('scan-phase').textContent = 'ANALYSIS COMPLETE';
     await new Promise(r => setTimeout(r, 700));
     stopScanAnimation();
     document.getElementById('scan-screen').classList.add('hidden');
@@ -621,18 +474,49 @@ async function analyze() {
   }
 }
 
+// ============ METRIC SCALE HELPERS ============
+
+function scalePosition(value, min, max, avgPos) {
+  // Returns 0-100 percentage position
+  const clamped = Math.max(min, Math.min(max, value));
+  return ((clamped - min) / (max - min)) * 100;
+}
+
+function metricScaleHTML(name, value, displayVal, note, avgLabel, min, max, avgVal) {
+  const pos = scalePosition(value, min, max);
+  const avgPos = scalePosition(avgVal, min, max);
+  return `
+    <div class="metric-item">
+      <div class="metric-top">
+        <span class="metric-name">${name}</span>
+        <span class="metric-value">${displayVal}</span>
+        <span class="metric-avg">avg: ${avgLabel}</span>
+      </div>
+      <div class="metric-note" style="padding-left:112px;margin-bottom:6px">${esc(note)}</div>
+      <div class="metric-scale">
+        <div class="scale-track">
+          <div class="scale-avg-mark" style="left:${avgPos}%"></div>
+          <div class="scale-dot" style="left:${pos}%"></div>
+        </div>
+      </div>
+      <div class="scale-labels">
+        <span class="scale-lbl">Low</span>
+        <span class="scale-lbl">Avg</span>
+        <span class="scale-lbl">High</span>
+      </div>
+    </div>`;
+}
+
 // ============ RENDER REPORT ============
 
 function renderReport(d) {
   const report = document.getElementById('report');
   const rating = parseFloat(d.rating) || 0;
   const ceiling = parseFloat(d.ceiling) || 0;
-  const ringSize = 180;
-  const sw = 5;
+  const ringSize = 180, sw = 5;
   const r = (ringSize - sw * 2) / 2;
   const c = 2 * Math.PI * r;
 
-  // Metrics
   const m = d.metrics || {};
   const sym = m.symmetry || {};
   const fwhr = m.fwhr || {};
@@ -640,12 +524,47 @@ function renderReport(d) {
   const ft = m.facial_thirds || {};
   const jl = m.jawline || {};
 
-  // Format values
-  const fwhrVal = fwhr.value ? parseFloat(fwhr.value).toFixed(2) : '—';
-  const ctVal = ct.direction && ct.degrees !== undefined
+  const fwhrVal = fwhr.value ? parseFloat(fwhr.value) : 1.9;
+  const ctDeg = ct.degrees !== undefined ? parseFloat(ct.degrees) : 0;
+  const ctDisplay = ct.direction && ct.degrees !== undefined
     ? (ct.direction === 'positive' ? '+' : ct.direction === 'negative' ? '-' : '') + ct.degrees + '°'
     : '—';
-  const ftVal = ft.balance ? ft.balance.charAt(0).toUpperCase() + ft.balance.slice(1) : '—';
+
+  // Build metrics with visual scales
+  let metricsHTML = '';
+  metricsHTML += metricScaleHTML('Symmetry', parseFloat(sym.score) || 5, (parseFloat(sym.score) || 5).toFixed(1), sym.note || '', '5.0', 1, 10, 5);
+  metricsHTML += metricScaleHTML('FWHR', fwhrVal, fwhrVal.toFixed(2), fwhr.note || '', '1.90', 1.5, 2.4, 1.9);
+  metricsHTML += metricScaleHTML('Canthal Tilt', ctDeg, ctDisplay, ct.note || '', '0°', -6, 8, 0);
+  // Thirds is categorical, use a simpler row
+  const ftBalance = ft.balance ? ft.balance.charAt(0).toUpperCase() + ft.balance.slice(1) : '—';
+  metricsHTML += `
+    <div class="metric-item">
+      <div class="metric-top">
+        <span class="metric-name">Thirds</span>
+        <span class="metric-value">${esc(ftBalance)}</span>
+        <span class="metric-avg">avg: Balanced</span>
+      </div>
+      <div class="metric-note" style="padding-left:112px">${esc(ft.note || '')}</div>
+    </div>`;
+  metricsHTML += metricScaleHTML('Jawline', parseFloat(jl.score) || 5, (parseFloat(jl.score) || 5).toFixed(1), jl.note || '', '5.0', 1, 10, 5);
+
+  // Body composition
+  const bc = d.body_composition || {};
+  const bcHTML = bc.current_bf_estimate ? `
+    <div class="body-comp">
+      <div class="body-comp-header">
+        <div class="bf-stat">
+          <span class="bf-label">Current</span>
+          <span class="bf-value">${esc(bc.current_bf_estimate)}</span>
+        </div>
+        <span class="bf-arrow">→</span>
+        <div class="bf-stat bf-target">
+          <span class="bf-label">Target</span>
+          <span class="bf-value">${esc(bc.target_bf)}</span>
+        </div>
+      </div>
+      <p>${esc(bc.note || '')}</p>
+    </div>` : '';
 
   // Features
   let featuresHTML = '';
@@ -733,33 +652,7 @@ function renderReport(d) {
         <span class="sec-label">Structural Metrics</span>
         <div class="sec-line"></div>
       </div>
-      <div class="metrics-grid">
-        <div class="metric-row">
-          <span class="metric-name">Symmetry</span>
-          <span class="metric-value">${sym.score != null ? parseFloat(sym.score).toFixed(1) : '—'}</span>
-          <span class="metric-note">${esc(sym.note || '')}</span>
-        </div>
-        <div class="metric-row">
-          <span class="metric-name">FWHR</span>
-          <span class="metric-value">${fwhrVal}</span>
-          <span class="metric-note">${esc(fwhr.note || '')}</span>
-        </div>
-        <div class="metric-row">
-          <span class="metric-name">Canthal Tilt</span>
-          <span class="metric-value">${ctVal}</span>
-          <span class="metric-note">${esc(ct.note || '')}</span>
-        </div>
-        <div class="metric-row">
-          <span class="metric-name">Thirds</span>
-          <span class="metric-value">${ftVal}</span>
-          <span class="metric-note">${esc(ft.note || '')}</span>
-        </div>
-        <div class="metric-row">
-          <span class="metric-name">Jawline</span>
-          <span class="metric-value">${jl.score != null ? parseFloat(jl.score).toFixed(1) : '—'}</span>
-          <span class="metric-note">${esc(jl.note || '')}</span>
-        </div>
-      </div>
+      <div class="metrics-grid">${metricsHTML}</div>
     </div>
 
     <div class="hr"></div>
@@ -822,13 +715,22 @@ function renderReport(d) {
     <div>
       <div class="sec-head">
         <span class="sec-num">08</span>
+        <span class="sec-label">Body Composition</span>
+        <div class="sec-line"></div>
+      </div>
+      ${bcHTML}
+    </div>
+
+    <div class="hr"></div>
+
+    <div>
+      <div class="sec-head">
+        <span class="sec-num">09</span>
         <span class="sec-label">Best Angle</span>
         <div class="sec-line"></div>
       </div>
       <div class="angle-card">
-        <div class="angle-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">${angleArrow}</svg>
-        </div>
+        <div class="angle-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none">${angleArrow}</svg></div>
         <div class="angle-body">
           <h4>${esc(angleSide.charAt(0).toUpperCase() + angleSide.slice(1))}</h4>
           <p>${esc(ba.note || '')}</p>
@@ -837,20 +739,15 @@ function renderReport(d) {
     </div>
 
     <div class="hr" style="margin-top:16px"></div>
-    <div class="footer">
-      <div class="footer-dot"></div>
-      <span>Read</span>
-    </div>
+    <div class="footer"><div class="footer-dot"></div><span>Read</span></div>
   `;
 
   report.classList.remove('hidden');
-
   const btn = document.createElement('button');
   btn.className = 'new-read-btn';
   btn.textContent = 'New Read';
   btn.onclick = resetAll;
   report.after(btn);
-
   animateRing(rating, c);
 }
 
@@ -870,10 +767,7 @@ function animateRing(target, circumference) {
   setTimeout(() => requestAnimationFrame(tick), 300);
 }
 
-function showError(msg) {
-  document.getElementById('error-msg').textContent = msg;
-  document.getElementById('error-box').classList.remove('hidden');
-}
+function showError(msg) { document.getElementById('error-msg').textContent = msg; document.getElementById('error-box').classList.remove('hidden'); }
 function hideError() { document.getElementById('error-box').classList.add('hidden'); }
 
 function resetAll() {
@@ -895,12 +789,7 @@ function resetAll() {
   if (nb) nb.remove();
 }
 
-function esc(s) {
-  if (!s) return '';
-  const el = document.createElement('div');
-  el.textContent = s;
-  return el.innerHTML;
-}
+function esc(s) { if (!s) return ''; const el = document.createElement('div'); el.textContent = s; return el.innerHTML; }
 </script>
 </body>
 </html>
