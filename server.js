@@ -8,16 +8,16 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
 function buildPrompt(metrics) {
-  return `You are a clinical facial analyst with expertise in physiognomy, facial proportion science, and looksmaxxing optimization. A 68-point facial landmark system computed structural measurements. However, landmark detection is imperfect and can be thrown off by photo angle, lighting, or expression. YOUR CRITICAL ROLE is to provide a COMMON SENSE adjustment to the structural score AND assess presentation, personality, and optimization.
+  return `You are a clinical facial analyst with expertise in physiognomy, facial proportion science, and looksmaxxing optimization. A 68-point facial landmark system computed structural measurements from this photo. The math is useful as a reference, but it's imperfect — landmark detection can be thrown off by photo angle, lighting, or expression. YOU set the final attractiveness score based on what you SEE.
 
-COMPUTED DATA FROM LANDMARKS:
+COMPUTED DATA FROM LANDMARKS (reference only — do NOT be constrained by these):
 ${JSON.stringify(metrics, null, 2)}
 
 RESPOND WITH ONLY VALID JSON. No markdown, no backticks, no explanation.
 
 {
-  "structural_adjustment": 0.5,
-  "structural_adjustment_note": "One sentence explaining why you're adjusting up or down.",
+  "overall_score": 7.5,
+  "overall_note": "One sentence: what drives this score. Be specific.",
 
   "presentation": {
     "skin_clarity": { "score": 7, "note": "One sentence" },
@@ -70,36 +70,47 @@ RESPOND WITH ONLY VALID JSON. No markdown, no backticks, no explanation.
 
 CRITICAL RULES:
 
-STRUCTURAL ADJUSTMENT (-2.5 to +2.5):
-This is your MOST IMPORTANT field. Look at the photo with your own eyes and compare to the computed structural score (${metrics?.structural?.structural || 'unknown'}).
-- If the person is CLEARLY very attractive but the structural score is too low → adjust UP significantly. A model-tier face should land at 8.5-9.5 structural after your adjustment.
-- If the person is clearly unattractive but the structural score is too high → adjust DOWN.
-- If the score seems approximately right → adjust near 0.
-- USE COMMON SENSE. Do not let a gorgeous face sit at 6.0. Do not let a below-average face sit at 8.0.
-- Most people: -0.5 to +0.5. Reserve ±1.5 to ±2.5 for obvious errors.
-- Be BRAVE. If someone is a 9, make sure they end up near 9 after your adjustment.
+OVERALL_SCORE (1.0-10.0) — THIS IS YOUR MOST IMPORTANT FIELD:
+This is the facial attractiveness score YOU assign based on looking at the photo. The computed landmark data is a reference — useful context, but do NOT be limited by it. Use YOUR EYES and COMMON SENSE.
 
-PRESENTATION SCORES (1-10): USE THE FULL RANGE.
-1-2: Terrible. 3-4: Below average. 5: Average. 6-7: Above average. 8-9: Excellent. 10: Flawless.
-Do NOT cluster at 5-7. Bad grooming = 2-3. Great style = 8-9. Be HONEST.
+CALIBRATION (memorize this scale):
+- 1.0-2.0: Severe deformity or extreme unattractiveness
+- 2.0-3.0: Well below average. Significant structural issues obvious at a glance
+- 3.0-4.0: Below average. Multiple noticeable flaws
+- 4.0-5.0: Slightly below average
+- 5.0: Dead average. Unremarkable in every way
+- 5.5-6.0: Slightly above average. A few good features
+- 6.0-7.0: Above average. Noticeably attractive to most people
+- 7.0-8.0: Very attractive. Turns heads occasionally
+- 8.0-9.0: Exceptionally attractive. Model-tier bone structure, harmony, presence
+- 9.0-9.5: Strikingly beautiful. Top fraction of a percent. Think top models, iconic faces
+- 9.5-10.0: Virtually perfect. Reserve for AI-generated perfect faces only
 
-TODAY MOVES (3-5): Achievable in hours. Grooming, styling, quick-fix skincare, expression, outfit. Bumps 0.05-0.4.
+EXAMPLES TO CALIBRATE:
+- A person with a very strong jawline, perfect symmetry, ideal proportions, high cheekbones, positive canthal tilt, excellent grooming = 8.5-9.5
+- Average person on the street = 4.5-5.5
+- Someone with good but not exceptional features, decent grooming = 6.0-7.0
+- Someone clearly below average with poor proportions = 3.0-4.0
 
-90-DAY REGIMEN (3-5): ONLY long-term physiological changes. Body recomposition, skincare protocols (retinol/SPF), posture correction, dental work, sleep optimization. NOT grooming — that's a today move. Bumps 0.1-0.8.
+USE THE FULL RANGE. Do NOT cluster between 5.5-7.5. If someone is clearly a 9, give them a 9. If someone is clearly a 3, give them a 3. BE BRAVE AND HONEST.
+
+PRESENTATION SCORES (1-10): Same full-range rule applies.
+1-2: Terrible. 3-4: Below average. 5: Average. 6-7: Above avg. 8-9: Excellent. 10: Flawless.
+
+TODAY MOVES (3-5): Achievable in hours. Bumps 0.05-0.4.
+90-DAY REGIMEN (3-5): ONLY long-term physiological changes. NOT grooming. Bumps 0.1-0.8.
 
 LOOKSMAXXING (3-6): Match THIS person's weaknesses to techniques:
-- Body recomposition → soft jawline, undefined cheeks, facial bloat (ROI: high, evidence: established)
-- Mewing → recessed maxilla, weak chin, flat midface, narrow palate (ROI: medium, evidence: moderate)
+- Body recomposition → soft jawline, facial bloat (ROI: high, evidence: established)
+- Mewing → recessed maxilla, weak chin, flat midface (ROI: medium, evidence: moderate)
 - Thumb pulling → maxilla expansion (ROI: low-medium, evidence: anecdotal)
 - Mastic gum chewing → weak masseter, narrow jaw (ROI: medium, evidence: moderate)
-- Gua sha → puffiness, undefined cheek hollows (ROI: medium, evidence: moderate)
+- Gua sha → puffiness, undefined cheeks (ROI: medium, evidence: moderate)
 - Chin tucking → forward head posture (ROI: medium, evidence: established)
 - Neck training → narrow neck (ROI: medium, evidence: established)
-- Minoxidil → patchy beard for jawline framing (ROI: medium, evidence: established)
+- Minoxidil → patchy beard (ROI: medium, evidence: established)
 - Dermarolling + retinol → skin texture (ROI: medium, evidence: established)
-- Brow lamination → eye framing (ROI: low, evidence: established)
-- Teeth whitening → smile impact (ROI: low, evidence: established)
-Only include techniques RELEVANT to detected problems. Rate evidence honestly. If person scores 8+ structurally, recommend refinements only.
+Only include techniques RELEVANT to detected problems.
 
 No celebrity names. No disclaimers. Clinical and direct.`;
 }
