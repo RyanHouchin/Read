@@ -33,19 +33,14 @@ input[type="file"] { display: none; }
 .analysis-wrap img { width: 100%; display: block; border-radius: 6px; }
 .analysis-wrap canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
 .scan-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; overflow: hidden; border-radius: 6px; }
-.scan-pulse { position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; background: radial-gradient(circle, rgba(0,255,170,0.15) 0%, rgba(0,255,170,0.05) 40%, transparent 70%); transform: translate(-50%, -50%); animation: pulseExpand 2.5s ease-out infinite; }
-.scan-pulse:nth-child(2) { animation-delay: 0.8s; }
-.scan-pulse:nth-child(3) { animation-delay: 1.6s; }
-@keyframes pulseExpand { 0% { width: 0; height: 0; opacity: 1; } 100% { width: 200%; height: 200%; opacity: 0; } }
-.scan-veil { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, rgba(0,255,170,0.04) 0%, transparent 30%, transparent 70%, rgba(0,255,170,0.04) 100%); animation: veilShimmer 3s ease-in-out infinite; }
-@keyframes veilShimmer { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
-.scan-corners { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
-.scan-corners::before, .scan-corners::after { content: ''; position: absolute; width: 40px; height: 40px; border-color: rgba(0,255,170,0.5); border-style: solid; }
-.scan-corners::before { top: 8px; left: 8px; border-width: 2px 0 0 2px; animation: cornerPulse 2s ease-in-out infinite; }
-.scan-corners::after { bottom: 8px; right: 8px; border-width: 0 2px 2px 0; animation: cornerPulse 2s ease-in-out infinite 1s; }
-@keyframes cornerPulse { 0%,100% { border-color: rgba(0,255,170,0.3); } 50% { border-color: rgba(0,255,170,0.7); } }
-.scan-label { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); font-family: 'DM Mono', monospace; font-size: 10px; color: rgba(0,255,170,0.7); letter-spacing: 3px; text-align: center; animation: labelFade 1.5s ease-in-out infinite; }
-@keyframes labelFade { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+.scan-vignette { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.5) 100%); animation: vignetteBreath 3s ease-in-out infinite; }
+@keyframes vignetteBreath { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
+.scan-bracket { position: absolute; width: 50px; height: 50px; }
+.scan-bracket.tl { top: 12px; left: 12px; border-top: 2px solid rgba(255,255,255,0.3); border-left: 2px solid rgba(255,255,255,0.3); }
+.scan-bracket.br { bottom: 12px; right: 12px; border-bottom: 2px solid rgba(255,255,255,0.3); border-right: 2px solid rgba(255,255,255,0.3); }
+.scan-bracket.tr { top: 12px; right: 12px; border-top: 2px solid rgba(255,255,255,0.15); border-right: 2px solid rgba(255,255,255,0.15); }
+.scan-bracket.bl { bottom: 12px; left: 12px; border-bottom: 2px solid rgba(255,255,255,0.15); border-left: 2px solid rgba(255,255,255,0.15); }
+.scan-label { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); font-family: 'DM Mono', monospace; font-size: 10px; color: rgba(255,255,255,0.5); letter-spacing: 3px; text-align: center; }
 @keyframes fadeIn { to { opacity: 1; } }
 .analysis-status { margin-top: 20px; font-family: 'DM Mono', monospace; font-size: 12px; color: #666; letter-spacing: 1px; }
 .analysis-bar { width: 300px; height: 2px; background: #1a1a1a; margin-top: 12px; border-radius: 1px; overflow: hidden; }
@@ -154,7 +149,7 @@ input[type="file"] { display: none; }
 .methodology { text-align: center; font-family: 'DM Mono', monospace; font-size: 10px; color: #333; line-height: 1.8; margin-top: 24px; max-width: 500px; }
 
 /* Annotated photo */
-.annotated-photo img { width: 100%; border-radius: 6px; border: 1px solid #1a1a1a; }
+.annotated-photo img { width: 100%; max-width: 500px; display: block; margin: 0 auto; border-radius: 6px; border: 1px solid #1a1a1a; }
 </style>
 </head>
 <body>
@@ -207,10 +202,24 @@ function scoreColor(s) {
   return '#8a5a5a';
 }
 
+// Percentile (1-99) → Score (1.0-10.0)
+function _pctToScore(pct) {
+  pct = clamp(pct, 1, 99);
+  if (pct <= 5) return 1.0 + (pct / 5) * 0.5;
+  if (pct <= 15) return 1.5 + ((pct - 5) / 10) * 1.0;
+  if (pct <= 30) return 2.5 + ((pct - 15) / 15) * 1.5;
+  if (pct <= 50) return 4.0 + ((pct - 30) / 20) * 1.0;
+  if (pct <= 70) return 5.0 + ((pct - 50) / 20) * 1.5;
+  if (pct <= 85) return 6.5 + ((pct - 70) / 15) * 1.0;
+  if (pct <= 93) return 7.5 + ((pct - 85) / 8) * 1.0;
+  if (pct <= 97) return 8.5 + ((pct - 93) / 4) * 0.75;
+  return 9.25 + ((pct - 97) / 2) * 0.75;
+}
+
 // ===== METRIC BAR (all use 1-10 scale) =====
 function metricBarHTML(name, score, context, rawInfo) {
-  const pos = ((score - 1) / 9) * 100;
-  const avgPos = ((5 - 1) / 9) * 100; // avg is always 5 on 1-10
+  // Map so 5 = 50% center
+  const pos = score <= 5 ? ((score - 1) / 4) * 50 : 50 + ((score - 5) / 5) * 50;
   const dotColor = score >= 5 ? '#fff' : '#888';
   return `<div class="metric-item">
     <div class="metric-header">
@@ -220,7 +229,7 @@ function metricBarHTML(name, score, context, rawInfo) {
     <div class="metric-context">${esc(context)}</div>
     <div class="metric-bar-wrap">
       <div class="metric-bar-track"></div>
-      <div class="metric-bar-avg" style="left:${avgPos}%"></div>
+      <div class="metric-bar-avg" style="left:50%"></div>
       <div class="metric-bar-dot" style="left:calc(${pos}% - 6px);background:${dotColor}"></div>
     </div>
     <div class="metric-bar-labels"><span>1</span><span>5</span><span>10</span></div>
@@ -288,7 +297,7 @@ function computeAllMetrics(landmarks, detection, age, gender, expressions) {
   const fwhrW = dist(p[1], p[15]), fwhrH = dist(midlineTop, p[51]);
   const fwhr = fwhrH > 0 ? fwhrW / fwhrH : 1.9;
   const idealFWHR = gender === 'male' ? 1.95 : 1.80;
-  const fwhrScore = clamp(10 - Math.abs(fwhr - idealFWHR) * 18, 1, 10);
+  const fwhrScore = clamp(10 - Math.abs(fwhr - idealFWHR) * 28, 1, 10);
 
   // 3. CANTHAL TILT
   const ctL = angleDeg(p[36], p[39]), ctR = angleDeg(p[42], p[45]);
@@ -309,7 +318,7 @@ function computeAllMetrics(landmarks, detection, age, gender, expressions) {
   // 5. EYE SPACING
   const lEC = midpoint(p[36], p[39]), rEC = midpoint(p[42], p[45]);
   const interoc = dist(lEC, rEC), esRatio = interoc / faceW;
-  const esScore = clamp(10 - Math.abs(esRatio - 0.46) * 60, 1, 10);
+  const esScore = clamp(10 - Math.abs(esRatio - 0.46) * 150, 1, 10);
 
   // 6. JAWLINE
   const jawAngle = (() => {
@@ -318,28 +327,28 @@ function computeAllMetrics(landmarks, detection, age, gender, expressions) {
     return Math.acos(clamp(dot/(m1*m2),-1,1)) * (180/Math.PI);
   })();
   const idealJaw = gender === 'male' ? 128 : 135;
-  const jawScore = clamp(10 - Math.abs(jawAngle - idealJaw) * 0.3, 1, 10);
+  const jawScore = clamp(10 - Math.abs(jawAngle - idealJaw) * 0.45, 1, 10);
 
   // 7. NOSE
   const noseW = dist(p[31], p[35]), noseRatio = interoc > 0 ? noseW / interoc : 0.7;
-  const noseScore = clamp(10 - Math.abs(noseRatio - 0.65) * 25, 1, 10);
+  const noseScore = clamp(10 - Math.abs(noseRatio - 0.65) * 45, 1, 10);
 
   // 8. MOUTH
   const mouthW = dist(p[48], p[54]), mouthRatio = mouthW / faceW;
-  const mouthScore = clamp(10 - Math.abs(mouthRatio - 0.40) * 35, 1, 10);
+  const mouthScore = clamp(10 - Math.abs(mouthRatio - 0.40) * 80, 1, 10);
 
   // 9. LIPS
   const uLipH = dist(p[51], p[62]), lLipH = dist(p[57], p[66]);
   const lipRatio = lLipH > 0 ? uLipH / lLipH : 0.7;
   const idealLip = gender === 'female' ? 0.75 : 0.70;
-  const lipScore = clamp(10 - Math.abs(lipRatio - idealLip) * 12, 1, 10);
+  const lipScore = clamp(10 - Math.abs(lipRatio - idealLip) * 30, 1, 10);
 
   // 10. GOLDEN RATIO
   const gr1 = faceH > 0 ? faceW / faceH : 1;
   const nCD = dist(p[33], chin), lCD = dist(p[57], chin);
   const gr3 = lCD > 0 ? nCD / lCD : 1;
   const grDev = (Math.abs(gr1 - 1.618) + Math.abs(interoc/faceW*2.5 - 1.618/2.5*2.5) + Math.abs(gr3 - 1.618)) / 3;
-  const goldenScore = clamp(10 - grDev * 8, 1, 10);
+  const goldenScore = clamp(10 - grDev * 16, 1, 10);
 
   // 11. DIMORPHISM
   let dimorphism;
@@ -404,65 +413,48 @@ function drawOverlay(canvas, img, points, metrics) {
   const ctx = canvas.getContext('2d');
   canvas.width = img.naturalWidth;
   canvas.height = img.naturalHeight;
-  const c1 = 'rgba(0,255,170,0.8)';
-  const c2 = 'rgba(0,255,170,0.35)';
-  const c3 = 'rgba(255,200,0,0.6)';
-  const fs = Math.max(12, canvas.width * 0.02);
-  const fsS = Math.max(9, canvas.width * 0.014);
+  const fs = Math.max(13, canvas.width * 0.022);
 
-  // Landmarks
-  points.forEach(pt => { ctx.beginPath(); ctx.arc(pt.x, pt.y, 2.5, 0, Math.PI*2); ctx.fillStyle = c2; ctx.fill(); });
+  // Landmark dots only — small, subtle, no connecting lines
+  points.forEach(pt => {
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, 2, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.fill();
+  });
 
-  // Jawline trace
-  ctx.beginPath();
-  for (let i=0;i<=16;i++) { i===0?ctx.moveTo(points[i].x,points[i].y):ctx.lineTo(points[i].x,points[i].y); }
-  ctx.strokeStyle = 'rgba(0,255,170,0.25)'; ctx.lineWidth = 1.5; ctx.stroke();
+  // Key points slightly brighter (eyes, nose, mouth, jaw)
+  const keyPts = [36,39,42,45,30,48,54,8,0,16];
+  keyPts.forEach(i => {
+    ctx.beginPath();
+    ctx.arc(points[i].x, points[i].y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fill();
+  });
 
-  // Symmetry midline
-  const midX = (points[0].x + points[16].x) / 2;
-  ctx.beginPath(); ctx.moveTo(midX, points[27].y - 40); ctx.lineTo(midX, points[8].y + 15);
-  ctx.strokeStyle = c3; ctx.lineWidth = 1.5; ctx.setLineDash([5,5]); ctx.stroke(); ctx.setLineDash([]);
+  // Labels — right side, clean white
+  ctx.font = `500 ${fs}px DM Mono, monospace`;
+  ctx.textAlign = 'left';
+  const lx = points[16].x + 18;
+  let ly = points[19].y;
+  const gap = fs * 2.2;
 
-  // FWHR rectangle
-  const mt = midpoint(points[21], points[22]);
-  ctx.strokeStyle = c1; ctx.lineWidth = 1.5;
-  ctx.strokeRect(points[1].x, mt.y, points[15].x - points[1].x, points[51].y - mt.y);
-
-  // Canthal tilt lines
-  ctx.strokeStyle = c1; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(points[36].x, points[36].y); ctx.lineTo(points[39].x, points[39].y); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(points[42].x, points[42].y); ctx.lineTo(points[45].x, points[45].y); ctx.stroke();
-
-  // Eye spacing line
-  const lEC = midpoint(points[36], points[39]), rEC = midpoint(points[42], points[45]);
-  ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1;
-  ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(lEC.x,lEC.y); ctx.lineTo(rEC.x,rEC.y); ctx.stroke(); ctx.setLineDash([]);
-
-  // Nose + mouth width
-  ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(points[31].x,points[31].y); ctx.lineTo(points[35].x,points[35].y); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(points[48].x,points[48].y); ctx.lineTo(points[54].x,points[54].y); ctx.stroke();
-
-  // Thirds dividers
-  const browY = Math.min(points[19].y, points[24].y), noseY = points[33].y;
-  ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.setLineDash([4,4]);
-  [browY, noseY].forEach(y => { ctx.beginPath(); ctx.moveTo(points[0].x-10,y); ctx.lineTo(points[16].x+10,y); ctx.stroke(); });
-  ctx.setLineDash([]);
-
-  // Labels right side
-  ctx.font = `${fs}px DM Mono, monospace`; ctx.fillStyle = c1; ctx.textAlign = 'left';
-  const lx = points[16].x + 20; let ly = points[19].y; const gap = fs * 2;
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
   ctx.fillText(`SYM ${metrics.symmetry.score.toFixed(1)}`, lx, ly); ly += gap;
   ctx.fillText(`FWHR ${metrics.fwhr.value}`, lx, ly); ly += gap;
   ctx.fillText(`CT ${metrics.canthalTilt.degrees > 0 ? '+' : ''}${metrics.canthalTilt.degrees}°`, lx, ly); ly += gap;
   ctx.fillText(`JAW ${metrics.jawline.angle}°`, lx, ly); ly += gap;
-  ctx.fillStyle = c3;
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
   ctx.fillText(`GR ${metrics.goldenRatio.score.toFixed(1)}`, lx, ly); ly += gap;
   ctx.fillText(`DIM ${metrics.dimorphism.score.toFixed(1)}`, lx, ly);
 
-  // Thirds labels left
-  ctx.font = `${fsS}px DM Mono, monospace`; ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.textAlign = 'right';
-  const tlx = points[0].x - 15;
+  // Thirds — left side
+  const fsS = Math.max(10, canvas.width * 0.015);
+  ctx.font = `${fsS}px DM Mono, monospace`;
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.textAlign = 'right';
+  const browY = Math.min(points[19].y, points[24].y), noseY = points[33].y;
+  const tlx = points[0].x - 12;
   ctx.fillText(`U ${metrics.thirds.upper}%`, tlx, browY - 5);
   ctx.fillText(`M ${metrics.thirds.mid}%`, tlx, (browY + noseY) / 2);
   ctx.fillText(`L ${metrics.thirds.lower}%`, tlx, noseY + 15);
@@ -479,11 +471,11 @@ function getAnnotatedImage(img, canvas) {
 function showScanEffect() {
   const overlay = document.getElementById('scan-overlay');
   overlay.innerHTML = `
-    <div class="scan-pulse"></div>
-    <div class="scan-pulse"></div>
-    <div class="scan-pulse"></div>
-    <div class="scan-veil"></div>
-    <div class="scan-corners"></div>
+    <div class="scan-vignette"></div>
+    <div class="scan-bracket tl"></div>
+    <div class="scan-bracket tr"></div>
+    <div class="scan-bracket bl"></div>
+    <div class="scan-bracket br"></div>
     <div class="scan-label" id="scan-phase">DETECTING FACE</div>
   `;
 }
@@ -591,19 +583,32 @@ async function analyze(file) {
   bar.style.width = '95%';
   status.textContent = 'Building report...';
 
-  // Final score — Claude's direct assessment
-  const finalScore = clamp(claudeData.overall_score || 5, 1, 10);
+  // === PERCENTILE TO SCORE MAPPING ===
+  // Maps Claude's percentile (1-99) to display score (1.0-10.0)
+  function pctToScore(pct) { return _pctToScore(pct); }
 
-  const pres = claudeData.presentation || {};
-  const presAvg = ((pres.skin_clarity?.score||5)+(pres.coloring_contrast?.score||5)+(pres.hair?.score||5)+(pres.expression_quality?.score||5)+(pres.grooming?.score||5)+(pres.photo_quality?.score||5))/6;
+  // Final score from Claude's percentile
+  const rawPct = clamp(claudeData.attractiveness_percentile || 50, 1, 99);
+  const finalScore = +pctToScore(rawPct).toFixed(1);
 
-  const todayBumps = (claudeData.today_moves || []).reduce((s, m) => s + (m.bump || 0), 0);
-  const regimenBumps = (claudeData.regimen_moves || []).reduce((s, m) => s + (m.bump || 0), 0);
-  const todayCeiling = clamp(+(finalScore + todayBumps).toFixed(1), finalScore, 10);
-  const regimenCeiling = clamp(+(todayCeiling + regimenBumps).toFixed(1), todayCeiling, 10);
+  // Presentation scores from percentiles
+  const pres = claudeData.presentation_percentiles || {};
+  const presScores = {};
+  for (const [key, data] of Object.entries(pres)) {
+    presScores[key] = { score: +pctToScore(data?.percentile || 50).toFixed(1), note: data?.note || '' };
+  }
+  const presAvg = Object.values(presScores).reduce((s, d) => s + d.score, 0) / Math.max(Object.keys(presScores).length, 1);
+
+  // Bumps — convert percentile bumps to score bumps
+  const todayBumpPct = (claudeData.today_moves || []).reduce((s, m) => s + (m.bump_percentile || 0), 0);
+  const regimenBumpPct = (claudeData.regimen_moves || []).reduce((s, m) => s + (m.bump_percentile || 0), 0);
+  const todayCeilPct = clamp(rawPct + todayBumpPct, rawPct, 99);
+  const regimenCeilPct = clamp(todayCeilPct + regimenBumpPct, todayCeilPct, 99);
+  const todayCeiling = +pctToScore(todayCeilPct).toFixed(1);
+  const regimenCeiling = +pctToScore(regimenCeilPct).toFixed(1);
 
   bar.style.width = '100%';
-  setTimeout(() => renderReport(metrics, physiognomy, claudeData, finalScore, todayCeiling, regimenCeiling, presAvg, annotatedImgUrl), 500);
+  setTimeout(() => renderReport(metrics, physiognomy, claudeData, finalScore, todayCeiling, regimenCeiling, presAvg, presScores, rawPct, annotatedImgUrl), 500);
 }
 
 // ===== SCORE ANIMATION =====
@@ -618,7 +623,7 @@ function animateScore(el, target) {
 }
 
 // ===== RENDER REPORT =====
-function renderReport(m, phys, cd, finalScore, todayCeil, regimenCeil, presAvg, annotatedImgUrl) {
+function renderReport(m, phys, cd, finalScore, todayCeil, regimenCeil, presAvg, presScores, rawPct, annotatedImgUrl) {
   showScreen('report-screen');
   const r = document.getElementById('report');
   let sn = 0;
@@ -635,9 +640,10 @@ function renderReport(m, phys, cd, finalScore, todayCeil, regimenCeil, presAvg, 
     <div class="hero-impression">${esc(cd.first_impression || '')}</div>
   `);
 
-  // 02 — OVERALL SCORE (clean — no sloppy context block)
+  // 02 — OVERALL SCORE
   html += sec('Overall Score', `
     <div class="big-score" id="score-display">0.0</div><span class="big-score-sub">/ 10</span>
+    <div style="font-family:'DM Mono',monospace;font-size:12px;color:#444;margin-top:4px;letter-spacing:1px">${rawPct}th percentile</div>
     <div style="margin-top:20px">
       <div class="score-layer">
         <span class="score-layer-label">Structure</span>
@@ -660,7 +666,7 @@ function renderReport(m, phys, cd, finalScore, todayCeil, regimenCeil, presAvg, 
         <span class="score-layer-val">${(cd.harmony?.adjustment||0)>0?'+':''}${(cd.harmony?.adjustment||0).toFixed(1)}</span>
       </div>
     </div>
-    ${cd.overall_note ? `<div style="font-size:13px;color:#555;margin-top:16px;font-style:italic">${esc(cd.overall_note)}</div>` : ''}
+    ${cd.percentile_reasoning ? `<div style="font-size:13px;color:#555;margin-top:16px;font-style:italic">${esc(cd.percentile_reasoning)}</div>` : ''}
   `);
 
   // 03 — PROJECTION
@@ -708,7 +714,7 @@ function renderReport(m, phys, cd, finalScore, todayCeil, regimenCeil, presAvg, 
   physHTML += metricBarHTML('Competence', phys.competence, 'Perceived capability and reliability', null);
   physHTML += metricBarHTML('Approachable', phys.approachability, 'How comfortable strangers feel initiating contact', null);
   physHTML += metricBarHTML('Threat', phys.threat, 'Perceived danger level — lower is more approachable', null);
-  physHTML += cd.personality_read ? `<div class="section-body">${esc(cd.personality_read)}</div>` : '';
+  physHTML += cd.personality_read ? `<div class="opt-label">Social Perception</div><div class="section-body">${esc(cd.personality_read)}</div>` : '';
   html += sec('Personality Profile', physHTML);
 
   // 06 — PRESENTATION
@@ -716,18 +722,19 @@ function renderReport(m, phys, cd, finalScore, todayCeil, regimenCeil, presAvg, 
   const presMap = { skin_clarity: 'Skin Clarity', coloring_contrast: 'Coloring', hair: 'Hair', expression_quality: 'Expression', grooming: 'Grooming', photo_quality: 'Photo Quality' };
   const presCtx = { skin_clarity: 'Texture, evenness, pores, and blemishes', coloring_contrast: 'Contrast between features and skin tone', hair: 'Style, quality, and how it frames the face', expression_quality: 'How current expression affects attractiveness', grooming: 'Facial hair maintenance, brow shaping, upkeep', photo_quality: 'Lighting, angle, focus, and background' };
   for (const [key, label] of Object.entries(presMap)) {
-    const data = (cd.presentation || {})[key];
-    const sc = data?.score || 5;
+    const data = presScores[key] || { score: 5, note: '' };
+    const sc = data.score;
+    const scPos = sc <= 5 ? ((sc - 1) / 4) * 50 : 50 + ((sc - 5) / 5) * 50;
     presHTML += `<div class="metric-item">
-      <div class="metric-header"><span class="metric-name">${esc(label)}</span><span class="metric-score" style="color:${scoreColor(sc)}">${sc}</span></div>
+      <div class="metric-header"><span class="metric-name">${esc(label)}</span><span class="metric-score" style="color:${scoreColor(sc)}">${sc.toFixed(1)}</span></div>
       <div class="metric-context">${esc(presCtx[key])}</div>
       <div class="metric-bar-wrap">
         <div class="metric-bar-track"></div>
-        <div class="metric-bar-avg" style="left:${((5-1)/9)*100}%"></div>
-        <div class="metric-bar-dot" style="left:calc(${((sc-1)/9)*100}% - 6px);background:${sc >= 5 ? '#fff' : '#888'}"></div>
+        <div class="metric-bar-avg" style="left:50%"></div>
+        <div class="metric-bar-dot" style="left:calc(${scPos}% - 6px);background:${sc >= 5 ? '#fff' : '#888'}"></div>
       </div>
       <div class="metric-bar-labels"><span>1</span><span>5</span><span>10</span></div>
-      ${data?.note ? `<div class="metric-raw">${esc(data.note)}</div>` : ''}
+      ${data.note ? `<div class="metric-raw">${esc(data.note)}</div>` : ''}
     </div>`;
   }
   html += sec('Presentation Factors', presHTML);
@@ -741,9 +748,24 @@ function renderReport(m, phys, cd, finalScore, todayCeil, regimenCeil, presAvg, 
 
   // 08 — OPTIMIZATION
   let optHTML = '<div class="opt-label">Today — Immediate Impact</div>';
-  (cd.today_moves || []).forEach(m => { optHTML += `<div class="opt-item"><div class="opt-bump">+${(m.bump||0).toFixed(1)}</div><div class="opt-content"><div class="opt-action">${esc(m.action)}</div><div class="opt-detail">${esc(m.detail)}</div></div></div>`; });
+  let runningPct = rawPct;
+  (cd.today_moves || []).forEach(mv => {
+    const bpct = mv.bump_percentile || 0;
+    const before = _pctToScore(runningPct);
+    runningPct = clamp(runningPct + bpct, runningPct, 99);
+    const after = _pctToScore(runningPct);
+    const delta = (after - before).toFixed(1);
+    optHTML += `<div class="opt-item"><div class="opt-bump">+${delta}</div><div class="opt-content"><div class="opt-action">${esc(mv.action)}</div><div class="opt-detail">${esc(mv.detail)}</div></div></div>`;
+  });
   optHTML += '<div class="opt-label">90-Day Regimen</div>';
-  (cd.regimen_moves || []).forEach(m => { optHTML += `<div class="opt-item"><div class="opt-bump">+${(m.bump||0).toFixed(1)}</div><div class="opt-content"><div class="opt-action">${esc(m.action)}</div><div class="opt-detail">${esc(m.detail)}</div></div></div>`; });
+  (cd.regimen_moves || []).forEach(mv => {
+    const bpct = mv.bump_percentile || 0;
+    const before = _pctToScore(runningPct);
+    runningPct = clamp(runningPct + bpct, runningPct, 99);
+    const after = _pctToScore(runningPct);
+    const delta = (after - before).toFixed(1);
+    optHTML += `<div class="opt-item"><div class="opt-bump">+${delta}</div><div class="opt-content"><div class="opt-action">${esc(mv.action)}</div><div class="opt-detail">${esc(mv.detail)}</div></div></div>`;
+  });
   optHTML += `<div class="bf-ref"><div class="bf-ref-title">Body Fat Reference — Optimal Facial Definition</div><div class="bf-row"><span>Men</span><span>10 – 15%</span></div><div class="bf-row"><span>Women</span><span>18 – 22%</span></div></div>`;
   html += sec('Optimization', optHTML);
 
