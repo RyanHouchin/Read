@@ -1,1 +1,1 @@
-{"name":"read","version":"6.2.0","scripts":{"start":"node server.js"},"dependencies":{"express":"^4.18.2"}}
+{"name":"read","version":"8.0.0","scripts":{"start":"node server.js"},"dependencies":{"express":"^4.18.2"}}
