@@ -119,6 +119,17 @@
   .scale-labels { display: flex; justify-content: space-between; width: 100%; max-width: 220px; margin-left: 112px; margin-top: 2px; }
   .scale-lbl { font-size: 8px; color: #1e1e1e; text-transform: uppercase; letter-spacing: 0.08em; }
 
+  /* Thirds proportion bar */
+  .thirds-bar-wrap { display: flex; align-items: center; gap: 0; margin-top: 8px; padding-left: 112px; max-width: 332px; }
+  .thirds-segment {
+    height: 20px; display: flex; align-items: center; justify-content: center;
+    font-size: 8px; font-family: 'DM Mono', monospace; color: #555; letter-spacing: 0.04em;
+  }
+  .thirds-segment:first-child { border-radius: 3px 0 0 3px; }
+  .thirds-segment:last-child { border-radius: 0 3px 3px 0; }
+  .thirds-labels { display: flex; justify-content: space-between; max-width: 220px; margin-left: 112px; margin-top: 3px; }
+  .thirds-lbl { font-size: 8px; color: #1e1e1e; text-transform: uppercase; letter-spacing: 0.04em; }
+
   /* Body comp */
   .body-comp {
     border: 1px solid #161616; border-radius: 12px; padding: 20px; background: #0a0a0a;
@@ -172,6 +183,8 @@
   @media (max-width: 480px) {
     .metric-scale { padding-left: 0; }
     .scale-labels { margin-left: 0; }
+    .thirds-bar-wrap { padding-left: 0; }
+    .thirds-labels { margin-left: 0; }
     .metric-top { flex-wrap: wrap; }
     .metric-note { min-width: 100%; margin-top: 4px; }
   }
@@ -535,16 +548,24 @@ function renderReport(d) {
   metricsHTML += metricScaleHTML('Symmetry', parseFloat(sym.score) || 5, (parseFloat(sym.score) || 5).toFixed(1), sym.note || '', '5.0', 1, 10, 5);
   metricsHTML += metricScaleHTML('FWHR', fwhrVal, fwhrVal.toFixed(2), fwhr.note || '', '1.90', 1.5, 2.4, 1.9);
   metricsHTML += metricScaleHTML('Canthal Tilt', ctDeg, ctDisplay, ct.note || '', '0°', -6, 8, 0);
-  // Thirds is categorical, use a simpler row
+  // Thirds gets a stacked proportion bar
   const ftBalance = ft.balance ? ft.balance.charAt(0).toUpperCase() + ft.balance.slice(1) : '—';
+  const upPct = parseInt(ft.upper_pct) || 33;
+  const midPct = parseInt(ft.mid_pct) || 34;
+  const lowPct = parseInt(ft.lower_pct) || 33;
   metricsHTML += `
     <div class="metric-item">
       <div class="metric-top">
         <span class="metric-name">Thirds</span>
         <span class="metric-value">${esc(ftBalance)}</span>
-        <span class="metric-avg">avg: Balanced</span>
+        <span class="metric-avg">ideal: 33/33/33</span>
       </div>
-      <div class="metric-note" style="padding-left:112px">${esc(ft.note || '')}</div>
+      <div class="metric-note" style="padding-left:112px;margin-bottom:6px">${esc(ft.note || '')}</div>
+      <div class="thirds-bar-wrap">
+        <div class="thirds-segment" style="width:${upPct}%;background:#1a1a1a">U ${upPct}%</div>
+        <div class="thirds-segment" style="width:${midPct}%;background:#141414">M ${midPct}%</div>
+        <div class="thirds-segment" style="width:${lowPct}%;background:#1a1a1a">L ${lowPct}%</div>
+      </div>
     </div>`;
   metricsHTML += metricScaleHTML('Jawline', parseFloat(jl.score) || 5, (parseFloat(jl.score) || 5).toFixed(1), jl.note || '', '5.0', 1, 10, 5);
 
