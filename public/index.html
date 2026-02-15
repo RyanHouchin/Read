@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Read</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Instrument+Serif&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #080808;
+    color: #c8c8c8;
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 48px 20px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { width: 100%; max-width: 540px; display: flex; flex-direction: column; align-items: center; gap: 28px; }
+
+  /* Upload screen */
+  .upload-screen { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+  .logo { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+  .logo-dot { width: 5px; height: 5px; border-radius: 50%; background: #fff; }
+  .logo h1 { font-family: 'Instrument Serif', serif; font-size: 40px; font-weight: 400; color: #f0f0f0; letter-spacing: -0.02em; }
+  .logo p { font-size: 13px; color: #4a4a4a; font-weight: 300; }
+
+  .drop-zone {
+    width: 100%; min-height: 220px; border: 1px solid #181818; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    background: #0c0c0c; padding: 36px; overflow: hidden; position: relative;
+  }
+  .drop-zone.has-img { padding: 0; min-height: auto; cursor: default; }
+  .drop-zone input { display: none; }
+  .drop-hint { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .drop-hint p { font-size: 13px; color: #555; }
+  .drop-hint small { font-size: 11px; color: #2a2a2a; }
+
+  .preview-wrap { position: relative; width: 100%; }
+  .preview-wrap img { width: 100%; max-height: 380px; object-fit: cover; border-radius: 13px; display: block; }
+  .remove-btn {
+    position: absolute; top: 10px; right: 10px; width: 28px; height: 28px; border-radius: 50%;
+    border: none; background: rgba(0,0,0,.65); color: #777; font-size: 12px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .analyze-btn {
+    width: 100%; padding: 14px 0; background: #fff; color: #000; border: none; border-radius: 10px;
+    font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; letter-spacing: 0.02em;
+  }
+  .analyze-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* Loading */
+  .loading-screen { display: flex; flex-direction: column; align-items: center; gap: 18px; padding-top: 72px; }
+  .loading-screen h2 { font-family: 'Instrument Serif', serif; font-size: 26px; color: #ddd; font-weight: 400; }
+  .loading-bar { width: 180px; height: 2px; background: #161616; border-radius: 1px; overflow: hidden; }
+  .loading-bar-inner { width: 40%; height: 100%; background: #3a3a3a; border-radius: 1px; animation: slide 1.5s ease-in-out infinite; }
+  @keyframes slide { 0%{transform:translateX(-150%)} 100%{transform:translateX(350%)} }
+  .loading-screen small { font-size: 11px; color: #252525; }
+
+  /* Error */
+  .error-box {
+    width: 100%; padding: 16px 18px; background: #140c0c; border: 1px solid #2a1515; border-radius: 10px;
+  }
+  .error-box p { font-size: 12px; color: #cc6666; line-height: 1.6; }
+  .error-box button {
+    margin-top: 12px; padding: 8px 16px; background: transparent; color: #666;
+    border: 1px solid #2a1515; border-radius: 6px; font-size: 12px; cursor: pointer; font-family: 'DM Sans', sans-serif;
+  }
+
+  /* Report */
+  .report { width: 100%; display: flex; flex-direction: column; gap: 40px; }
+  .hr { height: 1px; background: #111; }
+  .body-text { font-size: 14px; line-height: 1.9; color: #8a8a8a; font-weight: 300; letter-spacing: 0.005em; }
+
+  /* Hero */
+  .hero { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .hero-avatar {
+    width: 80px; height: 80px; border-radius: 50%; overflow: hidden;
+    border: 2px solid #1a1a1a; box-shadow: 0 0 60px rgba(255,255,255,0.02);
+  }
+  .hero-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .hero-archetype { font-size: 10px; color: #353535; letter-spacing: 0.28em; text-transform: uppercase; font-weight: 400; }
+  .hero-opening { font-family: 'Instrument Serif', serif; font-size: 22px; color: #cdcdcd; line-height: 1.55; max-width: 480px; font-weight: 400; }
+  .hero-fi-label { font-size: 9px; color: #222; letter-spacing: 0.14em; text-transform: uppercase; }
+  .hero-fi { font-size: 13px; color: #505050; font-style: italic; font-weight: 300; }
+
+  /* Section headers */
+  .sec-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 20px; }
+  .sec-num { font-size: 10px; color: #252525; font-variant-numeric: tabular-nums; letter-spacing: 0.06em; font-weight: 500; }
+  .sec-label { font-size: 10px; color: #404040; text-transform: uppercase; letter-spacing: 0.16em; font-weight: 400; }
+  .sec-line { flex: 1; height: 1px; background: #151515; }
+
+  /* Rating */
+  .rating-wrap { display: flex; align-items: center; gap: 32px; flex-wrap: wrap; justify-content: center; }
+  .ring-container { position: relative; }
+  .ring-value {
+    position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .ring-num { font-family: 'Instrument Serif', serif; font-size: 56px; color: #f0f0f0; line-height: 1; letter-spacing: -0.04em; }
+  .ring-label { font-size: 10px; color: #333; font-weight: 300; margin-top: 6px; letter-spacing: 0.12em; text-transform: uppercase; }
+  .rating-detail { flex: 1; min-width: 180px; display: flex; flex-direction: column; gap: 8px; }
+  .rating-row { display: flex; justify-content: space-between; align-items: baseline; }
+  .rating-key { font-size: 11px; color: #303030; text-transform: uppercase; letter-spacing: 0.08em; }
+  .rating-val { font-family: 'Instrument Serif', serif; font-size: 24px; }
+  .rating-context { font-size: 12px; line-height: 1.7; font-weight: 300; }
+
+  /* Cards */
+  .card {
+    border: 1px solid #161616; border-radius: 12px; padding: 18px 20px; background: #0a0a0a;
+  }
+  .card.leak { border-color: #1a1212; background: #0a0909; }
+  .card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .card h4 { font-size: 13px; color: #aaa; font-weight: 500; }
+  .card p { font-size: 12px; color: #505050; line-height: 1.7; font-weight: 300; padding-left: 14px; }
+  .diamond { width: 6px; height: 6px; border-radius: 1px; background: #252525; transform: rotate(45deg); }
+
+  /* Moves */
+  .move { display: flex; gap: 16px; }
+  .move-num { font-size: 10px; color: #222; font-variant-numeric: tabular-nums; padding-top: 3px; font-weight: 500; min-width: 16px; }
+  .move-body { flex: 1; }
+  .move-body h4 { font-size: 13px; color: #aaa; font-weight: 500; margin-bottom: 5px; }
+  .move-body p { font-size: 12px; color: #505050; line-height: 1.7; font-weight: 300; }
+  .impact-bar { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  .impact-track { width: 48px; height: 3px; background: #131313; border-radius: 2px; overflow: hidden; }
+  .impact-fill { height: 100%; border-radius: 2px; }
+  .impact-label { font-size: 9px; color: #282828; text-transform: uppercase; letter-spacing: 0.1em; }
+
+  /* Footer */
+  .footer { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 16px 0 32px; }
+  .footer-dot { width: 4px; height: 4px; border-radius: 50%; background: #1e1e1e; }
+  .footer span { font-size: 11px; color: #1e1e1e; letter-spacing: 0.1em; font-weight: 300; }
+
+  .new-read-btn {
+    width: 100%; padding: 13px 0; background: transparent; color: #4a4a4a;
+    border: 1px solid #1a1a1a; border-radius: 10px; font-size: 12px;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; margin-bottom: 32px;
+  }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- UPLOAD SCREEN -->
+  <div id="upload-screen" class="upload-screen">
+    <div class="logo">
+      <div class="logo-dot"></div>
+      <h1>Read</h1>
+      <p>Upload a photo. Get the structural read.</p>
+    </div>
+
+    <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+      <input type="file" id="file-input" accept="image/*">
+      <div class="drop-hint" id="drop-hint">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#3a3a3a" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+        <p>Tap to upload a photo</p>
+        <small>Clear, well-lit, front-facing works best</small>
+      </div>
+      <div class="preview-wrap hidden" id="preview-wrap">
+        <img id="preview-img" src="" alt="">
+        <button class="remove-btn" id="remove-btn" onclick="event.stopPropagation(); resetAll();">&#10005;</button>
+      </div>
+    </div>
+
+    <button class="analyze-btn hidden" id="analyze-btn" onclick="analyze()">Analyze</button>
+  </div>
+
+  <!-- LOADING SCREEN -->
+  <div id="loading-screen" class="loading-screen hidden">
+    <div class="logo-dot"></div>
+    <h2>Reading the architecture</h2>
+    <div class="loading-bar"><div class="loading-bar-inner"></div></div>
+    <small>This takes 15–30 seconds</small>
+  </div>
+
+  <!-- ERROR -->
+  <div id="error-box" class="error-box hidden">
+    <p id="error-msg"></p>
+    <button onclick="resetAll()">Try Again</button>
+  </div>
+
+  <!-- REPORT -->
+  <div id="report" class="report hidden"></div>
+
+</div>
+
+<script>
+let compressedBase64 = null;
+let previewURL = null;
+
+// File selection
+document.getElementById('file-input').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  e.target.value = '';
+  compressImage(file);
+});
+
+function compressImage(file) {
+  compressedBase64 = null;
+  hideError();
+
+  // Show preview immediately from the raw file
+  previewURL = URL.createObjectURL(file);
+  const previewImg = document.getElementById('preview-img');
+  previewImg.src = previewURL;
+  document.getElementById('drop-hint').classList.add('hidden');
+  document.getElementById('preview-wrap').classList.remove('hidden');
+  document.getElementById('drop-zone').classList.add('has-img');
+  document.getElementById('drop-zone').onclick = null; // disable clicking the zone
+
+  // Compress via canvas
+  const reader = new FileReader();
+  reader.onload = function() {
+    const img = new Image();
+    img.onload = function() {
+      try {
+        const canvas = document.createElement('canvas');
+        let w = img.naturalWidth;
+        let h = img.naturalHeight;
+        const MAX = 768;
+        if (w > MAX || h > MAX) {
+          if (w >= h) { h = Math.round(h * MAX / w); w = MAX; }
+          else { w = Math.round(w * MAX / h); h = MAX; }
+        }
+        canvas.width = w;
+        canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        const dataURL = canvas.toDataURL('image/jpeg', 0.6);
+        compressedBase64 = dataURL.split(',')[1];
+        // Show analyze button
+        document.getElementById('analyze-btn').classList.remove('hidden');
+        document.getElementById('analyze-btn').disabled = false;
+      } catch (err) {
+        showError('Could not process this image: ' + err.message);
+      }
+    };
+    img.onerror = function() {
+      showError('Could not decode this image. Try a JPEG or PNG file.');
+    };
+    img.src = reader.result;
+  };
+  reader.onerror = function() {
+    showError('Could not read this file.');
+  };
+  reader.readAsDataURL(file);
+}
+
+async function analyze() {
+  if (!compressedBase64) return;
+
+  // Switch to loading
+  document.getElementById('upload-screen').classList.add('hidden');
+  document.getElementById('loading-screen').classList.remove('hidden');
+  hideError();
+
+  try {
+    const resp = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        image: compressedBase64,
+        media_type: 'image/jpeg'
+      })
+    });
+
+    const data = await resp.json();
+
+    if (!resp.ok || data.error) {
+      throw new Error(data.error || 'Server returned status ' + resp.status);
+    }
+
+    // Validate we got what we need
+    if (!data.opening || data.rating === undefined) {
+      throw new Error('Incomplete response. Try again.');
+    }
+
+    // Render report
+    document.getElementById('loading-screen').classList.add('hidden');
+    renderReport(data);
+
+  } catch (err) {
+    document.getElementById('loading-screen').classList.add('hidden');
+    document.getElementById('upload-screen').classList.remove('hidden');
+    showError(err.message);
+  }
+}
+
+function renderReport(d) {
+  const report = document.getElementById('report');
+
+  // Build features HTML
+  let featuresHTML = '';
+  (d.best_features || []).forEach(f => {
+    featuresHTML += `
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-head"><div class="diamond"></div><h4>${esc(f.feature)}</h4></div>
+        <p>${esc(f.detail)}</p>
+      </div>`;
+  });
+
+  // Build leaks HTML
+  let leaksHTML = '';
+  (d.leaks || []).forEach(l => {
+    leaksHTML += `
+      <div class="card leak" style="margin-bottom:12px">
+        <div class="card-head">
+          <svg width="8" height="8" viewBox="0 0 8 8"><polygon points="4,7 0.5,1 7.5,1" fill="none" stroke="#3a2525" stroke-width="1"/></svg>
+          <h4>${esc(l.issue)}</h4>
+        </div>
+        <p style="padding-left:16px">${esc(l.detail)}</p>
+      </div>`;
+  });
+
+  // Build moves HTML
+  let movesHTML = '';
+  (d.moves || []).forEach((m, i) => {
+    const pct = m.impact === 'high' ? '100%' : m.impact === 'medium' ? '66%' : '33%';
+    const col = m.impact === 'high' ? '#888' : '#333';
+    movesHTML += `
+      <div class="move" style="margin-bottom:22px">
+        <span class="move-num">${String(i+1).padStart(2,'0')}</span>
+        <div class="move-body">
+          <h4>${esc(m.action)}</h4>
+          <p>${esc(m.detail)}</p>
+          <div class="impact-bar">
+            <div class="impact-track"><div class="impact-fill" style="width:${pct};background:${col}"></div></div>
+            <span class="impact-label">${esc(m.impact)} impact</span>
+          </div>
+        </div>
+      </div>`;
+  });
+
+  const rating = parseFloat(d.rating) || 0;
+  const ceiling = parseFloat(d.ceiling) || 0;
+  const ringSize = 180;
+  const sw = 5;
+  const r = (ringSize - sw * 2) / 2;
+  const c = 2 * Math.PI * r;
+
+  report.innerHTML = `
+    <!-- Hero -->
+    <div class="hero">
+      ${previewURL ? `<div class="hero-avatar"><img src="${previewURL}" alt=""></div>` : ''}
+      <div class="hero-archetype">${esc(d.archetype || '')}</div>
+      <p class="hero-opening">${esc(d.opening)}</p>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:6px">
+        <span class="hero-fi-label">First impression</span>
+        <span class="hero-fi">${esc(d.first_impression || '')}</span>
+      </div>
+    </div>
+
+    <div class="hr"></div>
+
+    <!-- Rating -->
+    <div>
+      <div class="sec-head">
+        <span class="sec-num">01</span>
+        <span class="sec-label">Overall Rating</span>
+        <div class="sec-line"></div>
+      </div>
+      <div class="rating-wrap">
+        <div class="ring-container" style="width:${ringSize}px;height:${ringSize}px">
+          <svg width="${ringSize}" height="${ringSize}" style="transform:rotate(-90deg)">
+            <circle cx="${ringSize/2}" cy="${ringSize/2}" r="${r}" fill="none" stroke="#141414" stroke-width="${sw}"/>
+            <circle cx="${ringSize/2}" cy="${ringSize/2}" r="${r}" fill="none" stroke="#222" stroke-width="${sw}"
+              stroke-dasharray="${c}" stroke-dashoffset="${c-(ceiling/10)*c}" stroke-linecap="round" opacity="0.5"/>
+            <circle id="rating-arc" cx="${ringSize/2}" cy="${ringSize/2}" r="${r}" fill="none" stroke="#bbb" stroke-width="${sw}"
+              stroke-dasharray="${c}" stroke-dashoffset="${c}" stroke-linecap="round"/>
+          </svg>
+          <div class="ring-value">
+            <span class="ring-num" id="ring-num">0.0</span>
+            <span class="ring-label">of 10</span>
+          </div>
+        </div>
+        <div class="rating-detail">
+          <div class="rating-row">
+            <span class="rating-key">Current</span>
+            <span class="rating-val" style="color:#bbb">${rating.toFixed(1)}</span>
+          </div>
+          <div class="rating-row">
+            <span class="rating-key">Ceiling</span>
+            <span class="rating-val" style="color:#404040">${ceiling.toFixed(1)}</span>
+          </div>
+          <div style="height:1px;background:#151515;margin:6px 0"></div>
+          <p class="rating-context" style="color:#505050">${esc(d.rating_context || '')}</p>
+          <p class="rating-context" style="color:#333">${esc(d.ceiling_context || '')}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="hr"></div>
+
+    <!-- Personality -->
+    <div>
+      <div class="sec-head">
+        <span class="sec-num">02</span>
+        <span class="sec-label">Personality &amp; Intent</span>
+        <div class="sec-line"></div>
+      </div>
+      <p class="body-text">${esc(d.personality || '')}</p>
+    </div>
+
+    <div class="hr"></div>
+
+    <!-- Shadow -->
+    <div>
+      <div class="sec-head">
+        <span class="sec-num">03</span>
+        <span class="sec-label">The Shadow</span>
+        <div class="sec-line"></div>
+      </div>
+      <p class="body-text">${esc(d.shadow || '')}</p>
+    </div>
+
+    <div class="hr"></div>
+
+    <!-- Best Features -->
+    <div>
+      <div class="sec-head">
+        <span class="sec-num">04</span>
+        <span class="sec-label">Strongest Architecture</span>
+        <div class="sec-line"></div>
+      </div>
+      ${featuresHTML}
+    </div>
+
+    <div class="hr"></div>
+
+    <!-- Leaks -->
+    <div>
+      <div class="sec-head">
+        <span class="sec-num">05</span>
+        <span class="sec-label">Structural Leaks</span>
+        <div class="sec-line"></div>
+      </div>
+      ${leaksHTML}
+    </div>
+
+    <div class="hr"></div>
+
+    <!-- Moves -->
+    <div>
+      <div class="sec-head">
+        <span class="sec-num">06</span>
+        <span class="sec-label">Highest-ROI Moves</span>
+        <div class="sec-line"></div>
+      </div>
+      ${movesHTML}
+    </div>
+
+    <div class="hr" style="margin-top:16px"></div>
+    <div class="footer">
+      <div class="footer-dot"></div>
+      <span>Read</span>
+    </div>
+  `;
+
+  report.classList.remove('hidden');
+
+  // Add New Read button
+  const btn = document.createElement('button');
+  btn.className = 'new-read-btn';
+  btn.textContent = 'New Read';
+  btn.onclick = resetAll;
+  report.after(btn);
+
+  // Animate the rating ring
+  animateRing(rating, c);
+}
+
+function animateRing(target, circumference) {
+  const arc = document.getElementById('rating-arc');
+  const num = document.getElementById('ring-num');
+  if (!arc || !num) return;
+  const t0 = Date.now();
+  function tick() {
+    const p = Math.min((Date.now() - t0) / 1400, 1);
+    const eased = 1 - Math.pow(1 - p, 3);
+    const v = eased * target;
+    arc.setAttribute('stroke-dashoffset', circumference - (v / 10) * circumference);
+    num.textContent = v.toFixed(1);
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  setTimeout(() => requestAnimationFrame(tick), 300);
+}
+
+function showError(msg) {
+  document.getElementById('error-msg').textContent = msg;
+  document.getElementById('error-box').classList.remove('hidden');
+}
+function hideError() {
+  document.getElementById('error-box').classList.add('hidden');
+}
+
+function resetAll() {
+  compressedBase64 = null;
+  if (previewURL) { URL.revokeObjectURL(previewURL); previewURL = null; }
+
+  // Reset upload screen
+  document.getElementById('drop-hint').classList.remove('hidden');
+  document.getElementById('preview-wrap').classList.add('hidden');
+  document.getElementById('drop-zone').classList.remove('has-img');
+  document.getElementById('drop-zone').onclick = function() { document.getElementById('file-input').click(); };
+  document.getElementById('analyze-btn').classList.add('hidden');
+  document.getElementById('file-input').value = '';
+
+  // Hide everything, show upload
+  document.getElementById('loading-screen').classList.add('hidden');
+  document.getElementById('report').classList.add('hidden');
+  document.getElementById('report').innerHTML = '';
+  hideError();
+  document.getElementById('upload-screen').classList.remove('hidden');
+
+  // Remove any "New Read" button
+  const nb = document.querySelector('.new-read-btn');
+  if (nb) nb.remove();
+}
+
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+</script>
+</body>
+</html>
