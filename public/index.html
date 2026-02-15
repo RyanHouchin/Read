@@ -4,149 +4,175 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>READ</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
-<script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/dist/face-api.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/dist/face-api.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'DM Sans', sans-serif; background: #000; color: #e0e0e0; min-height: 100vh; -webkit-font-smoothing: antialiased; }
-  .screen { display: none; min-height: 100vh; }
-  .screen.active { display: flex; flex-direction: column; align-items: center; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0a0a; color: #e0e0e0; font-family: 'DM Sans', sans-serif; }
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: flex; flex-direction: column; align-items: center; }
 
-  /* Upload */
-  #upload-screen { justify-content: center; padding: 40px 20px; }
-  .upload-title { font-size: 48px; font-weight: 300; letter-spacing: 0.3em; color: #fff; margin-bottom: 8px; }
-  .upload-sub { font-family: 'DM Mono', monospace; font-size: 11px; color: #555; letter-spacing: 0.1em; margin-bottom: 40px; text-transform: uppercase; }
-  .upload-btn { background: #fff; color: #000; border: none; padding: 14px 48px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; letter-spacing: 0.08em; cursor: pointer; transition: opacity 0.2s; }
-  .upload-btn:hover { opacity: 0.85; }
-  .upload-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-  #file-input { display: none; }
-  .model-status { font-family: 'DM Mono', monospace; font-size: 10px; color: #333; margin-top: 20px; letter-spacing: 0.05em; }
-  .model-status.ready { color: #2d5a2d; }
+/* UPLOAD */
+#upload-screen { justify-content: center; padding: 40px 20px; }
+.upload-zone { border: 1px dashed #333; border-radius: 12px; padding: 60px 40px; text-align: center; cursor: pointer; transition: all 0.3s; max-width: 500px; width: 100%; }
+.upload-zone:hover, .upload-zone.dragover { border-color: #00ffaa; background: rgba(0,255,170,0.03); }
+.upload-zone h1 { font-family: 'DM Mono', monospace; font-size: 28px; font-weight: 500; letter-spacing: 6px; margin-bottom: 16px; }
+.upload-zone p { color: #666; font-size: 14px; margin-bottom: 20px; }
+.upload-zone .hint { color: #444; font-size: 12px; font-family: 'DM Mono', monospace; margin-top: 12px; }
+.upload-btn { background: transparent; color: #e0e0e0; border: 1px solid #333; padding: 12px 32px; font-family: 'DM Mono', monospace; font-size: 13px; letter-spacing: 2px; cursor: pointer; transition: all 0.3s; }
+.upload-btn:hover { border-color: #00ffaa; color: #00ffaa; }
+.upload-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+input[type="file"] { display: none; }
+.model-status { margin-top: 16px; font-family: 'DM Mono', monospace; font-size: 11px; color: #444; }
+.model-status.ready { color: #00ffaa; }
 
-  /* Analysis */
-  #analysis-screen { justify-content: center; padding: 40px 20px; }
-  .analysis-wrap { position: relative; max-width: 500px; width: 100%; }
-  .analysis-wrap img { width: 100%; display: block; }
-  .analysis-wrap canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-  .annotated-photo img { border: 1px solid #1a1a1a; }
-  .analysis-status { font-family: 'DM Mono', monospace; font-size: 11px; color: #555; letter-spacing: 0.08em; text-align: center; margin-top: 16px; text-transform: uppercase; }
-  .analysis-bar { width: 200px; height: 2px; background: #1a1a1a; margin: 12px auto; position: relative; overflow: hidden; }
-  .analysis-bar-fill { height: 100%; background: #fff; width: 0%; transition: width 0.3s; }
+/* ANALYSIS */
+#analysis-screen { justify-content: center; padding: 40px 20px; }
+.analysis-wrap { position: relative; max-width: 500px; width: 100%; }
+.analysis-wrap img { width: 100%; display: block; border-radius: 6px; }
+.analysis-wrap canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+.scan-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; overflow: hidden; border-radius: 6px; }
+.scan-line { position: absolute; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent 0%, #00ffaa 20%, #00ffaa 80%, transparent 100%); box-shadow: 0 0 15px #00ffaa, 0 0 30px rgba(0,255,170,0.3), 0 -8px 20px rgba(0,255,170,0.1), 0 8px 20px rgba(0,255,170,0.1); z-index: 10; animation: scanDown 3s ease-in-out forwards; }
+@keyframes scanDown { 0% { top: -2px; opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+.scan-grid { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(rgba(0,255,170,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,170,0.02) 1px, transparent 1px); background-size: 24px 24px; opacity: 0; animation: fadeIn 1.5s 0.5s ease-in forwards; }
+.scan-corners { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+.scan-corners::before, .scan-corners::after { content: ''; position: absolute; width: 30px; height: 30px; border-color: rgba(0,255,170,0.4); border-style: solid; }
+.scan-corners::before { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
+.scan-corners::after { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
+.scan-label { position: absolute; bottom: 12px; left: 12px; font-family: 'DM Mono', monospace; font-size: 10px; color: rgba(0,255,170,0.6); letter-spacing: 2px; animation: labelPulse 1.5s ease-in-out infinite; }
+@keyframes labelPulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+@keyframes fadeIn { to { opacity: 1; } }
+.analysis-status { margin-top: 20px; font-family: 'DM Mono', monospace; font-size: 12px; color: #666; letter-spacing: 1px; }
+.analysis-bar { width: 300px; height: 2px; background: #1a1a1a; margin-top: 12px; border-radius: 1px; overflow: hidden; }
+.analysis-bar-fill { height: 100%; background: #00ffaa; transition: width 0.8s ease; width: 0%; }
+.error-msg { color: #ff6b6b; font-size: 13px; margin-top: 16px; }
 
-  /* Report */
-  #report-screen { padding: 40px 20px 80px; }
-  .report { max-width: 520px; width: 100%; }
-  .section { margin-bottom: 36px; }
-  .section-num { font-family: 'DM Mono', monospace; font-size: 9px; color: #333; letter-spacing: 0.12em; margin-bottom: 4px; }
-  .section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: #fff; margin-bottom: 14px; }
-  .section-body { font-size: 13px; line-height: 1.7; color: #999; }
-  .section-divider { height: 1px; background: #111; margin: 36px 0; }
+/* REPORT */
+#report-screen { padding: 40px 20px 80px; }
+.report { max-width: 640px; width: 100%; margin: 0 auto; }
+.section { padding: 32px 0; }
+.section-divider { height: 1px; background: #1a1a1a; }
+.section-num { font-family: 'DM Mono', monospace; font-size: 11px; color: #333; letter-spacing: 2px; }
+.section-title { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 500; letter-spacing: 4px; margin: 4px 0 20px; }
 
-  /* Hero */
-  .hero-archetype { font-family: 'DM Mono', monospace; font-size: 10px; color: #555; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 12px; }
-  .hero-opening { font-size: 18px; font-weight: 300; color: #fff; line-height: 1.5; margin-bottom: 10px; }
-  .hero-impression { font-family: 'DM Mono', monospace; font-size: 11px; color: #444; letter-spacing: 0.06em; font-style: italic; }
+/* Score */
+.big-score { font-family: 'DM Mono', monospace; font-size: 72px; font-weight: 300; }
+.big-score-sub { font-family: 'DM Mono', monospace; font-size: 18px; color: #444; margin-left: 4px; }
+.score-layer { display: flex; align-items: center; gap: 12px; margin: 6px 0; }
+.score-layer-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1px; color: #666; width: 110px; text-transform: uppercase; flex-shrink: 0; }
+.score-layer-bar { flex: 1; height: 6px; background: #1a1a1a; border-radius: 3px; overflow: hidden; }
+.score-layer-fill { height: 100%; border-radius: 3px; transition: width 1.5s ease; }
+.score-layer-val { font-family: 'DM Mono', monospace; font-size: 11px; color: #888; width: 36px; text-align: right; flex-shrink: 0; }
+.score-context { font-size: 13px; color: #555; margin-top: 12px; line-height: 1.6; }
 
-  /* Score */
-  .score-hero { display: flex; align-items: baseline; gap: 12px; margin-bottom: 20px; }
-  .score-big { font-size: 64px; font-weight: 300; color: #fff; line-height: 1; }
-  .score-of { font-family: 'DM Mono', monospace; font-size: 12px; color: #333; }
-  .score-layers { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
-  .score-layer { display: flex; align-items: center; gap: 10px; }
-  .score-layer-label { font-family: 'DM Mono', monospace; font-size: 9px; color: #555; letter-spacing: 0.06em; min-width: 110px; text-transform: uppercase; }
-  .score-layer-bar { flex: 1; height: 6px; background: #111; position: relative; max-width: 220px; }
-  .score-layer-fill { height: 100%; transition: width 0.6s ease; }
-  .score-layer-val { font-family: 'DM Mono', monospace; font-size: 10px; color: #666; min-width: 30px; text-align: right; }
+/* Projection */
+.projection { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.proj-node { text-align: center; }
+.proj-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; color: #444; text-transform: uppercase; margin-bottom: 4px; }
+.proj-val { font-family: 'DM Mono', monospace; font-size: 36px; font-weight: 300; }
+.proj-val.current { color: #888; }
+.proj-val.today { color: #aaa; }
+.proj-val.regimen { color: #e0e0e0; }
+.proj-arrow { color: #333; font-size: 18px; }
 
-  /* Projection */
-  .projection { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; gap: 8px; }
-  .proj-node { text-align: center; }
-  .proj-label { font-family: 'DM Mono', monospace; font-size: 8px; color: #444; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
-  .proj-val { font-size: 28px; font-weight: 300; color: #fff; }
-  .proj-val.current { color: #888; }
-  .proj-val.today { color: #ccc; }
-  .proj-val.regimen { color: #fff; }
-  .proj-arrow { font-family: 'DM Mono', monospace; font-size: 14px; color: #333; }
+/* Metrics */
+.metric-item { margin: 20px 0; }
+.metric-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
+.metric-name { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #e0e0e0; }
+.metric-score { font-family: 'DM Mono', monospace; font-size: 16px; font-weight: 500; }
+.metric-context { font-size: 12px; color: #444; margin-bottom: 6px; }
+.metric-bar-wrap { position: relative; height: 20px; margin: 4px 0; }
+.metric-bar-track { position: absolute; top: 9px; left: 0; right: 0; height: 2px; background: #1a1a1a; }
+.metric-bar-dot { position: absolute; top: 4px; width: 12px; height: 12px; border-radius: 50%; background: #fff; transition: left 1s ease; }
+.metric-bar-avg { position: absolute; top: 4px; width: 1px; height: 12px; background: #333; }
+.metric-bar-labels { display: flex; justify-content: space-between; font-family: 'DM Mono', monospace; font-size: 9px; color: #333; letter-spacing: 1px; }
+.metric-raw { font-family: 'DM Mono', monospace; font-size: 10px; color: #333; margin-top: 2px; }
 
-  /* Metrics */
-  .metric-item { margin-bottom: 14px; }
-  .metric-top { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-  .metric-name { font-family: 'DM Mono', monospace; font-size: 10px; color: #666; letter-spacing: 0.08em; text-transform: uppercase; min-width: 100px; }
-  .metric-value { font-family: 'DM Mono', monospace; font-size: 12px; color: #fff; font-weight: 500; min-width: 40px; }
-  .metric-avg { font-family: 'DM Mono', monospace; font-size: 9px; color: #333; }
-  .metric-note { font-size: 11px; color: #555; margin-top: 3px; padding-left: 100px; }
-  .metric-scale { height: 4px; background: #111; margin-top: 6px; position: relative; max-width: 300px; margin-left: 100px; }
-  .metric-dot { width: 10px; height: 10px; border-radius: 50%; background: #fff; position: absolute; top: -3px; transition: left 0.4s; }
-  .metric-avg-line { width: 1px; height: 10px; background: #333; position: absolute; top: -3px; }
-  .scale-labels { display: flex; justify-content: space-between; max-width: 300px; margin-left: 100px; margin-top: 3px; }
-  .scale-lbl { font-size: 8px; color: #1e1e1e; text-transform: uppercase; letter-spacing: 0.06em; }
+/* Hero */
+.hero-archetype { font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 3px; color: #555; text-transform: uppercase; margin-bottom: 12px; }
+.hero-opening { font-size: 18px; line-height: 1.5; margin-bottom: 12px; }
+.hero-impression { font-family: 'DM Mono', monospace; font-size: 13px; color: #555; font-style: italic; }
 
-  /* Thirds bar */
-  .thirds-bar { display: flex; max-width: 300px; margin-left: 100px; margin-top: 6px; }
-  .thirds-seg { height: 18px; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: 8px; color: #666; }
-  .thirds-seg:first-child { border-radius: 3px 0 0 3px; }
-  .thirds-seg:last-child { border-radius: 0 3px 3px 0; }
+/* Architecture */
+.arch-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; color: #444; text-transform: uppercase; margin: 16px 0 8px; }
+.arch-feature { font-weight: 500; margin-bottom: 2px; }
+.arch-detail { font-size: 14px; color: #888; margin-bottom: 12px; line-height: 1.5; }
+.leak-feature { color: #8a5a5a; font-weight: 500; margin-bottom: 2px; }
 
-  /* Personality */
-  .personality-text { font-size: 13px; line-height: 1.7; color: #888; margin-top: 16px; }
+/* Optimization */
+.opt-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; color: #444; text-transform: uppercase; margin: 16px 0 12px; }
+.opt-item { display: flex; gap: 14px; margin-bottom: 16px; }
+.opt-bump { font-family: 'DM Mono', monospace; font-size: 13px; color: #7abd7a; flex-shrink: 0; width: 40px; }
+.opt-content {}
+.opt-action { font-weight: 500; font-size: 14px; margin-bottom: 2px; }
+.opt-detail { font-size: 13px; color: #888; }
 
-  /* Features / Leaks */
-  .feature-item { margin-bottom: 10px; }
-  .feature-name { font-family: 'DM Mono', monospace; font-size: 10px; color: #fff; letter-spacing: 0.06em; text-transform: uppercase; }
-  .feature-detail { font-size: 12px; color: #666; margin-top: 2px; }
+/* Looksmaxxing */
+.lm-item { background: #111; border-radius: 8px; padding: 16px; margin-bottom: 12px; border-left: 3px solid #333; }
+.lm-item[data-roi="high"] { border-left-color: #7abd7a; }
+.lm-item[data-roi="medium"] { border-left-color: #c9a84c; }
+.lm-item[data-roi="low"] { border-left-color: #666; }
+.lm-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.lm-technique { font-weight: 500; font-size: 14px; }
+.lm-badges { display: flex; gap: 6px; }
+.lm-badge { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1px; padding: 2px 6px; border-radius: 3px; text-transform: uppercase; }
+.lm-badge.roi-high { background: rgba(122,189,122,0.15); color: #7abd7a; }
+.lm-badge.roi-medium { background: rgba(201,168,76,0.15); color: #c9a84c; }
+.lm-badge.roi-low { background: rgba(102,102,102,0.15); color: #666; }
+.lm-badge.evidence { background: rgba(255,255,255,0.05); color: #555; }
+.lm-target { font-family: 'DM Mono', monospace; font-size: 10px; color: #555; margin-bottom: 6px; }
+.lm-detail { font-size: 13px; color: #888; line-height: 1.5; }
 
-  /* Optimization */
-  .opt-tier-label { font-family: 'DM Mono', monospace; font-size: 9px; color: #444; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; margin-top: 20px; }
-  .opt-item { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-start; }
-  .opt-bump { font-family: 'DM Mono', monospace; font-size: 11px; color: #4a7a4a; min-width: 36px; text-align: right; }
-  .opt-text { flex: 1; }
-  .opt-action { font-size: 12px; color: #ccc; font-weight: 500; }
-  .opt-detail { font-size: 11px; color: #555; margin-top: 2px; }
+/* Body fat ref */
+.bf-ref { background: #0f0f0f; border-radius: 6px; padding: 14px 18px; margin-top: 16px; }
+.bf-ref-title { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; color: #444; margin-bottom: 8px; }
+.bf-row { display: flex; justify-content: space-between; font-size: 13px; color: #555; padding: 2px 0; }
 
-  /* Body fat ref */
-  .bf-ref { background: #0a0a0a; padding: 14px; margin-top: 20px; }
-  .bf-ref-title { font-family: 'DM Mono', monospace; font-size: 9px; color: #444; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
-  .bf-ref-row { display: flex; justify-content: space-between; font-family: 'DM Mono', monospace; font-size: 11px; color: #666; margin-bottom: 4px; }
-  .bf-ref-val { color: #888; }
+/* Best angle */
+.angle-val { font-family: 'DM Mono', monospace; font-size: 20px; margin-bottom: 6px; }
+.angle-note { font-size: 14px; color: #888; }
 
-  /* Best angle */
-  .angle-side { font-family: 'DM Mono', monospace; font-size: 14px; color: #fff; margin-bottom: 6px; }
-  .angle-note { font-size: 12px; color: #666; }
+/* Personality */
+.section-body { font-size: 14px; line-height: 1.7; color: #888; margin-top: 16px; }
 
-  /* Methodology note */
-  .methodology { font-family: 'DM Mono', monospace; font-size: 9px; color: #222; letter-spacing: 0.04em; line-height: 1.6; margin-top: 40px; text-align: center; }
+/* Thirds bar */
+.thirds-bar { display: flex; border-radius: 4px; overflow: hidden; height: 24px; font-family: 'DM Mono', monospace; font-size: 10px; margin: 8px 0; }
+.thirds-seg { display: flex; align-items: center; justify-content: center; color: #555; }
 
-  /* New analysis button */
-  .new-btn { background: none; border: 1px solid #222; color: #555; padding: 10px 32px; font-family: 'DM Sans', sans-serif; font-size: 12px; letter-spacing: 0.08em; cursor: pointer; margin-top: 30px; transition: border-color 0.2s; }
-  .new-btn:hover { border-color: #444; color: #888; }
+/* Share / Actions */
+.report-actions { display: flex; gap: 12px; justify-content: center; margin: 24px 0; }
+.action-btn { background: transparent; color: #888; border: 1px solid #222; padding: 10px 24px; font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 2px; cursor: pointer; transition: all 0.3s; border-radius: 4px; }
+.action-btn:hover { border-color: #00ffaa; color: #00ffaa; }
+.action-btn:active { transform: scale(0.97); }
 
-  /* Error */
-  .error-msg { color: #661a1a; font-family: 'DM Mono', monospace; font-size: 11px; text-align: center; margin-top: 16px; }
+/* Methodology */
+.methodology { text-align: center; font-family: 'DM Mono', monospace; font-size: 10px; color: #333; line-height: 1.8; margin-top: 24px; max-width: 500px; }
 
-  @media (max-width: 480px) {
-    .metric-note, .metric-scale, .scale-labels, .thirds-bar { margin-left: 0; padding-left: 0; }
-    .metric-name { min-width: 80px; }
-    .score-big { font-size: 48px; }
-    .projection { flex-wrap: wrap; justify-content: center; }
-  }
+/* Annotated photo */
+.annotated-photo img { width: 100%; border-radius: 6px; border: 1px solid #1a1a1a; }
 </style>
 </head>
 <body>
 
 <!-- UPLOAD -->
 <div id="upload-screen" class="screen active">
-  <div class="upload-title">READ</div>
-  <div class="upload-sub">Facial Structure Analysis</div>
-  <button class="upload-btn" id="upload-btn" disabled>Select Photo</button>
-  <input type="file" id="file-input" accept="image/*">
-  <div class="model-status" id="model-status">Loading analysis models...</div>
+  <div class="upload-zone" id="drop-zone">
+    <h1>READ</h1>
+    <p>Facial structure analysis powered by 68-point landmark detection</p>
+    <button class="upload-btn" id="upload-btn" disabled onclick="document.getElementById('file-input').click()">Select Photo</button>
+    <input type="file" id="file-input" accept="image/*">
+    <div class="hint">or drag and drop an image</div>
+    <div class="model-status" id="model-status">Loading detection models...</div>
+  </div>
 </div>
 
 <!-- ANALYSIS -->
 <div id="analysis-screen" class="screen">
-  <div class="analysis-wrap">
+  <div class="analysis-wrap" id="analysis-wrap">
     <img id="analysis-img" src="" alt="">
     <canvas id="overlay-canvas"></canvas>
+    <div class="scan-overlay" id="scan-overlay"></div>
   </div>
   <div class="analysis-status" id="analysis-status">Detecting facial structure...</div>
   <div class="analysis-bar"><div class="analysis-bar-fill" id="analysis-bar"></div></div>
@@ -170,30 +196,32 @@ function dist(a, b) { return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2); }
 function midpoint(a, b) { return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; }
 function angleDeg(a, b) { return Math.atan2(b.y - a.y, b.x - a.x) * (180 / Math.PI); }
 
-function scalePos(val, min, max) { return clamp(((val - min) / (max - min)) * 100, 0, 100); }
-
-function metricBarHTML(name, val, displayVal, note, avgLabel, min, max, avg) {
-  const pos = scalePos(val, min, max);
-  const avgPos = scalePos(avg, min, max);
-  return `<div class="metric-item">
-    <div class="metric-top">
-      <span class="metric-name">${esc(name)}</span>
-      <span class="metric-value">${esc(displayVal)}</span>
-      <span class="metric-avg">avg: ${esc(avgLabel)}</span>
-    </div>
-    ${note ? `<div class="metric-note">${esc(note)}</div>` : ''}
-    <div class="metric-scale">
-      <div class="metric-avg-line" style="left:${avgPos}%"></div>
-      <div class="metric-dot" style="left:calc(${pos}% - 5px);background:${val >= avg ? '#fff' : '#888'}"></div>
-    </div>
-    <div class="scale-labels"><span class="scale-lbl">Low</span><span class="scale-lbl">Avg</span><span class="scale-lbl">High</span></div>
-  </div>`;
+function scoreColor(s) {
+  if (s >= 8) return '#7abd7a';
+  if (s >= 6) return '#888';
+  if (s >= 4) return '#c9a84c';
+  return '#8a5a5a';
 }
 
-function scoreColor(score) {
-  if (score >= 7.5) return '#7abd7a';
-  if (score >= 5) return '#888';
-  return '#8a5a5a';
+// ===== METRIC BAR (all use 1-10 scale) =====
+function metricBarHTML(name, score, context, rawInfo) {
+  const pos = ((score - 1) / 9) * 100;
+  const avgPos = ((5 - 1) / 9) * 100; // avg is always 5 on 1-10
+  const dotColor = score >= 5 ? '#fff' : '#888';
+  return `<div class="metric-item">
+    <div class="metric-header">
+      <span class="metric-name">${esc(name)}</span>
+      <span class="metric-score" style="color:${scoreColor(score)}">${score.toFixed(1)}</span>
+    </div>
+    <div class="metric-context">${esc(context)}</div>
+    <div class="metric-bar-wrap">
+      <div class="metric-bar-track"></div>
+      <div class="metric-bar-avg" style="left:${avgPos}%"></div>
+      <div class="metric-bar-dot" style="left:calc(${pos}% - 6px);background:${dotColor}"></div>
+    </div>
+    <div class="metric-bar-labels"><span>1</span><span>5</span><span>10</span></div>
+    ${rawInfo ? `<div class="metric-raw">${esc(rawInfo)}</div>` : ''}
+  </div>`;
 }
 
 // ===== LOAD MODELS =====
@@ -213,148 +241,133 @@ async function loadModels() {
     status.classList.add('ready');
     btn.disabled = false;
   } catch (e) {
-    status.textContent = 'Model load failed: ' + e.message;
-    console.error('Model load error:', e);
+    status.textContent = 'Model load failed. Refresh to retry.';
   }
 }
+loadModels();
 
-// ===== METRIC COMPUTATION =====
+// ===== FILE INPUT + DRAG AND DROP =====
+document.getElementById('file-input').addEventListener('change', e => {
+  if (e.target.files[0] && modelsLoaded) analyze(e.target.files[0]);
+});
+
+const dropZone = document.getElementById('drop-zone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/') && modelsLoaded) analyze(file);
+});
+
+// ===== COMPUTE METRICS =====
 function computeAllMetrics(landmarks, detection, age, gender, expressions) {
   const p = landmarks.positions;
-
-  // Face dimensions
   const faceW = dist(p[0], p[16]);
   const midlineTop = midpoint(p[21], p[22]);
   const chin = p[8];
   const faceH = dist(midlineTop, chin);
 
-  // 1. SYMMETRY — compare left/right distances from midline
+  // 1. SYMMETRY
   const midX = (p[27].x + p[30].x) / 2;
   const pairs = [[0,16],[1,15],[2,14],[3,13],[4,12],[5,11],[17,26],[18,25],[19,24],[20,23],[36,45],[37,44],[38,43],[39,42],[40,47],[41,46],[48,54],[49,53],[50,52]];
   let totalDev = 0;
   pairs.forEach(([l, r]) => {
-    const lDist = Math.abs(p[l].x - midX);
-    const rDist = Math.abs(p[r].x - midX);
-    const avg = (lDist + rDist) / 2;
-    if (avg > 0) totalDev += Math.abs(lDist - rDist) / avg;
+    const lD = Math.abs(p[l].x - midX), rD = Math.abs(p[r].x - midX), avg = (lD + rD) / 2;
+    if (avg > 0) totalDev += Math.abs(lD - rD) / avg;
   });
-  const symmetryDeviation = totalDev / pairs.length;
-  const symmetryScore = clamp(10 - symmetryDeviation * 40, 1, 10);
+  const symmetryDev = totalDev / pairs.length;
+  const symmetryScore = clamp(10 - symmetryDev * 40, 1, 10);
 
   // 2. FWHR
-  const fwhrWidth = dist(p[1], p[15]);
-  const fwhrHeight = dist(midlineTop, p[51]);
-  const fwhr = fwhrHeight > 0 ? fwhrWidth / fwhrHeight : 1.9;
+  const fwhrW = dist(p[1], p[15]), fwhrH = dist(midlineTop, p[51]);
+  const fwhr = fwhrH > 0 ? fwhrW / fwhrH : 1.9;
   const idealFWHR = gender === 'male' ? 1.95 : 1.80;
   const fwhrScore = clamp(10 - Math.abs(fwhr - idealFWHR) * 18, 1, 10);
 
   // 3. CANTHAL TILT
-  const ctLeft = angleDeg(p[36], p[39]);
-  const ctRight = angleDeg(p[42], p[45]);
-  const canthalTilt = -(ctLeft + ctRight) / 2; // negative of avg because y-axis is inverted
+  const ctL = angleDeg(p[36], p[39]), ctR = angleDeg(p[42], p[45]);
+  const canthalTilt = -(ctL + ctR) / 2;
   const idealCT = gender === 'male' ? 5 : 6;
   const ctScore = clamp(10 - Math.abs(canthalTilt - idealCT) * 1.2, 1, 10);
 
-  // 4. FACIAL THIRDS
-  const browY = midlineTop.y;
-  const noseBaseY = p[33].y;
-  const chinY = chin.y;
+  // 4. THIRDS
+  const browY = midlineTop.y, noseY = p[33].y, chinY = chin.y;
   const bbox = detection.detection.box;
-  const foreheadY = bbox.y;
-  const upperThird = browY - foreheadY;
-  const midThird = noseBaseY - browY;
-  const lowerThird = chinY - noseBaseY;
-  const totalThirds = upperThird + midThird + lowerThird;
-  const upperPct = (upperThird / totalThirds) * 100;
-  const midPct = (midThird / totalThirds) * 100;
-  const lowerPct = (lowerThird / totalThirds) * 100;
-  const thirdsDev = Math.abs(upperPct - 33.3) + Math.abs(midPct - 33.3) + Math.abs(lowerPct - 33.3);
-  const thirdsScore = clamp(10 - thirdsDev * 0.25, 1, 10);
-  const thirdsBalance = thirdsDev < 8 ? 'Balanced' : (lowerPct > 38 ? 'Bottom-heavy' : upperPct > 38 ? 'Top-heavy' : 'Mid-heavy');
+  const fhY = bbox.y;
+  const uT = browY - fhY, mT = noseY - browY, lT = chinY - noseY, total = uT + mT + lT;
+  const uPct = (uT/total)*100, mPct = (mT/total)*100, lPct = (lT/total)*100;
+  const tDev = Math.abs(uPct-33.3)+Math.abs(mPct-33.3)+Math.abs(lPct-33.3);
+  const thirdsScore = clamp(10 - tDev * 0.25, 1, 10);
+  const thirdsBalance = tDev < 8 ? 'Balanced' : (lPct > 38 ? 'Bottom-heavy' : uPct > 38 ? 'Top-heavy' : 'Mid-heavy');
 
   // 5. EYE SPACING
-  const leftEyeCenter = midpoint(p[36], p[39]);
-  const rightEyeCenter = midpoint(p[42], p[45]);
-  const interocular = dist(leftEyeCenter, rightEyeCenter);
-  const eyeSpacingRatio = interocular / faceW;
-  const idealES = 0.46;
-  const esScore = clamp(10 - Math.abs(eyeSpacingRatio - idealES) * 60, 1, 10);
+  const lEC = midpoint(p[36], p[39]), rEC = midpoint(p[42], p[45]);
+  const interoc = dist(lEC, rEC), esRatio = interoc / faceW;
+  const esScore = clamp(10 - Math.abs(esRatio - 0.46) * 60, 1, 10);
 
   // 6. JAWLINE
   const jawAngle = (() => {
-    const v1 = { x: p[4].x - p[8].x, y: p[4].y - p[8].y };
-    const v2 = { x: p[12].x - p[8].x, y: p[12].y - p[8].y };
-    const dot = v1.x * v2.x + v1.y * v2.y;
-    const m1 = Math.sqrt(v1.x**2 + v1.y**2);
-    const m2 = Math.sqrt(v2.x**2 + v2.y**2);
-    return Math.acos(clamp(dot / (m1 * m2), -1, 1)) * (180 / Math.PI);
+    const v1 = {x:p[4].x-p[8].x,y:p[4].y-p[8].y}, v2 = {x:p[12].x-p[8].x,y:p[12].y-p[8].y};
+    const dot = v1.x*v2.x+v1.y*v2.y, m1 = Math.sqrt(v1.x**2+v1.y**2), m2 = Math.sqrt(v2.x**2+v2.y**2);
+    return Math.acos(clamp(dot/(m1*m2),-1,1)) * (180/Math.PI);
   })();
   const idealJaw = gender === 'male' ? 128 : 135;
   const jawScore = clamp(10 - Math.abs(jawAngle - idealJaw) * 0.3, 1, 10);
 
-  // 7. NOSE WIDTH RATIO
-  const noseWidth = dist(p[31], p[35]);
-  const noseRatio = interocular > 0 ? noseWidth / interocular : 0.7;
-  const idealNose = 0.65;
-  const noseScore = clamp(10 - Math.abs(noseRatio - idealNose) * 25, 1, 10);
+  // 7. NOSE
+  const noseW = dist(p[31], p[35]), noseRatio = interoc > 0 ? noseW / interoc : 0.7;
+  const noseScore = clamp(10 - Math.abs(noseRatio - 0.65) * 25, 1, 10);
 
-  // 8. MOUTH WIDTH RATIO
-  const mouthWidth = dist(p[48], p[54]);
-  const mouthRatio = mouthWidth / faceW;
-  const idealMouth = 0.40;
-  const mouthScore = clamp(10 - Math.abs(mouthRatio - idealMouth) * 35, 1, 10);
+  // 8. MOUTH
+  const mouthW = dist(p[48], p[54]), mouthRatio = mouthW / faceW;
+  const mouthScore = clamp(10 - Math.abs(mouthRatio - 0.40) * 35, 1, 10);
 
-  // 9. LIP RATIO
-  const upperLipH = dist(p[51], p[62]);
-  const lowerLipH = dist(p[57], p[66]);
-  const lipRatio = lowerLipH > 0 ? upperLipH / lowerLipH : 0.7;
+  // 9. LIPS
+  const uLipH = dist(p[51], p[62]), lLipH = dist(p[57], p[66]);
+  const lipRatio = lLipH > 0 ? uLipH / lLipH : 0.7;
   const idealLip = gender === 'female' ? 0.75 : 0.70;
   const lipScore = clamp(10 - Math.abs(lipRatio - idealLip) * 12, 1, 10);
 
-  // 10. GOLDEN RATIO (simplified — 3 key ratios)
+  // 10. GOLDEN RATIO
   const gr1 = faceH > 0 ? faceW / faceH : 1;
-  const gr2 = interocular > 0 ? faceW / interocular : 1;
-  const noseChinDist = dist(p[33], chin);
-  const lipChinDist = dist(p[57], chin);
-  const gr3 = lipChinDist > 0 ? noseChinDist / lipChinDist : 1;
-  const grDev = (Math.abs(gr1 - 1.618) + Math.abs(gr2 / 2.5 - 1.618 / 2.5) + Math.abs(gr3 - 1.618)) / 3;
+  const nCD = dist(p[33], chin), lCD = dist(p[57], chin);
+  const gr3 = lCD > 0 ? nCD / lCD : 1;
+  const grDev = (Math.abs(gr1 - 1.618) + Math.abs(interoc/faceW*2.5 - 1.618/2.5*2.5) + Math.abs(gr3 - 1.618)) / 3;
   const goldenScore = clamp(10 - grDev * 8, 1, 10);
 
-  // 11. SEXUAL DIMORPHISM
+  // 11. DIMORPHISM
   let dimorphism;
   if (gender === 'male') {
-    const mascFWHR = clamp((fwhr - 1.6) * 6, 1, 10);
-    const mascJaw = clamp((150 - jawAngle) * 0.3, 1, 10);
-    const browEyeDist = dist(midpoint(p[19], p[20]), midpoint(p[37], p[38]));
-    const mascBrow = clamp(10 - browEyeDist / faceH * 30, 1, 10);
-    dimorphism = (mascFWHR * 0.4 + mascJaw * 0.4 + mascBrow * 0.2);
+    const mF = clamp((fwhr-1.6)*6,1,10), mJ = clamp((150-jawAngle)*0.3,1,10);
+    const bED = dist(midpoint(p[19],p[20]),midpoint(p[37],p[38]));
+    const mB = clamp(10-bED/faceH*30,1,10);
+    dimorphism = mF*0.4+mJ*0.4+mB*0.2;
   } else {
-    const eyeH = (dist(p[37], p[41]) + dist(p[38], p[40]) + dist(p[43], p[47]) + dist(p[44], p[46])) / 4;
-    const femEyes = clamp(eyeH / faceH * 80, 1, 10);
-    const femLips = clamp((upperLipH + lowerLipH) / faceH * 60, 1, 10);
-    const femJaw = clamp((jawAngle - 110) * 0.25, 1, 10);
-    dimorphism = (femEyes * 0.35 + femLips * 0.35 + femJaw * 0.3);
+    const eH = (dist(p[37],p[41])+dist(p[38],p[40])+dist(p[43],p[47])+dist(p[44],p[46]))/4;
+    const fE = clamp(eH/faceH*80,1,10), fL = clamp((uLipH+lLipH)/faceH*60,1,10), fJ = clamp((jawAngle-110)*0.25,1,10);
+    dimorphism = fE*0.35+fL*0.35+fJ*0.3;
   }
-  dimorphism = clamp(dimorphism, 1, 10);
+  dimorphism = clamp(dimorphism,1,10);
 
-  // 12. AGE SCORE
+  // 12. AGE
   const peak = gender === 'male' ? 30 : 24;
-  const ageDist = Math.abs(age - peak);
-  const ageScore = clamp(10 - ageDist / 6, 1, 10);
+  const ageScore = clamp(10 - Math.abs(age - peak) / 6, 1, 10);
 
   // STRUCTURAL COMPOSITE
   const structural = (
-    symmetryScore * 0.20 + goldenScore * 0.15 + fwhrScore * 0.10 +
-    ctScore * 0.10 + thirdsScore * 0.10 + jawScore * 0.10 +
-    esScore * 0.075 + noseScore * 0.075 + mouthScore * 0.05 + lipScore * 0.05
+    symmetryScore*0.20 + goldenScore*0.15 + fwhrScore*0.10 +
+    ctScore*0.10 + thirdsScore*0.10 + jawScore*0.10 +
+    esScore*0.075 + noseScore*0.075 + mouthScore*0.05 + lipScore*0.05
   );
 
   return {
-    symmetry: { score: +symmetryScore.toFixed(1), deviation: +(symmetryDeviation * 100).toFixed(1) },
+    symmetry: { score: +symmetryScore.toFixed(1), deviation: +(symmetryDev*100).toFixed(1) },
     fwhr: { score: +fwhrScore.toFixed(1), value: +fwhr.toFixed(2) },
     canthalTilt: { score: +ctScore.toFixed(1), degrees: +canthalTilt.toFixed(1) },
-    thirds: { score: +thirdsScore.toFixed(1), upper: +upperPct.toFixed(0), mid: +midPct.toFixed(0), lower: +lowerPct.toFixed(0), balance: thirdsBalance },
-    eyeSpacing: { score: +esScore.toFixed(1), ratio: +eyeSpacingRatio.toFixed(3) },
+    thirds: { score: +thirdsScore.toFixed(1), upper: +uPct.toFixed(0), mid: +mPct.toFixed(0), lower: +lPct.toFixed(0), balance: thirdsBalance },
+    eyeSpacing: { score: +esScore.toFixed(1), ratio: +esRatio.toFixed(3) },
     jawline: { score: +jawScore.toFixed(1), angle: +jawAngle.toFixed(0) },
     nose: { score: +noseScore.toFixed(1), ratio: +noseRatio.toFixed(2) },
     mouth: { score: +mouthScore.toFixed(1), ratio: +mouthRatio.toFixed(2) },
@@ -363,228 +376,115 @@ function computeAllMetrics(landmarks, detection, age, gender, expressions) {
     dimorphism: { score: +dimorphism.toFixed(1) },
     ageScore: { score: +ageScore.toFixed(1), detected: +age.toFixed(0) },
     structural: +structural.toFixed(2),
-    gender,
-    age: +age.toFixed(0),
-    expressions,
-    landmarks: p
+    gender, age: +age.toFixed(0), expressions, landmarks: p
   };
 }
 
 // ===== PHYSIOGNOMY =====
 function computePhysiognomy(p, expressions, gender, metrics) {
-  const expr = expressions || {};
-  const happy = expr.happy || 0;
-  const angry = expr.angry || 0;
-  const sad = expr.sad || 0;
-  const surprised = expr.surprised || 0;
-  const neutral = expr.neutral || 0;
-
-  // Mouth curve — corner height vs center
-  const mouthCenter = midpoint(p[51], p[57]);
-  const leftCorner = p[48];
-  const rightCorner = p[54];
-  const mouthCurve = ((mouthCenter.y - leftCorner.y) + (mouthCenter.y - rightCorner.y)) / 2;
-  const curveNorm = clamp(mouthCurve * 0.5 + 5, 1, 10);
-
-  // Eye openness
-  const faceH = dist(midpoint(p[21], p[22]), p[8]);
-  const eyeOpen = ((dist(p[37], p[41]) + dist(p[38], p[40]) + dist(p[43], p[47]) + dist(p[44], p[46])) / 4) / faceH;
-  const eyeNorm = clamp(eyeOpen * 120, 1, 10);
-
-  // Brow angle (V-shape indicator)
-  const browAngle = Math.abs(angleDeg(p[21], p[17]) - angleDeg(p[22], p[26]));
-  const browV = clamp(10 - browAngle * 0.15, 1, 10);
-
-  // Trustworthiness: mouth curve + eye openness + brow shape + happiness
-  const trust = clamp((curveNorm * 0.3 + eyeNorm * 0.2 + browV * 0.2 + happy * 20 * 0.2 + (1 - angry) * 10 * 0.1), 1, 10);
-
-  // Dominance: FWHR + jaw + brow position + low anger is paradoxically dominant-looking
+  const happyBoost = (expressions.happy || 0) * 3;
+  const angryPenalty = (expressions.angry || 0) * 3;
+  const trust = clamp(5 + happyBoost - angryPenalty + (10 - metrics.jawline.score) * 0.15, 1, 10);
   const domFWHR = clamp((metrics.fwhr.value - 1.6) * 8, 1, 10);
   const domJaw = clamp((150 - metrics.jawline.angle) * 0.35, 1, 10);
-  const dominance = clamp((domFWHR * 0.35 + domJaw * 0.35 + (10 - eyeNorm) * 0.15 + (10 - browV) * 0.15), 1, 10);
-
-  // Warmth: happiness + eye openness + mouth curve
-  const warmth = clamp((happy * 25 * 0.3 + eyeNorm * 0.3 + curveNorm * 0.25 + (1 - angry) * 8 * 0.15), 1, 10);
-
-  // Competence: symmetry + maturity
+  const dominance = clamp((domFWHR * 0.5 + domJaw * 0.5), 1, 10);
+  const warmth = clamp(5 + happyBoost * 1.3 + (expressions.surprised || 0) * 1.5 - angryPenalty * 1.2, 1, 10);
   const competence = clamp((metrics.symmetry.score * 0.4 + clamp(metrics.age / 5, 1, 10) * 0.3 + dominance * 0.3), 1, 10);
-
-  // Approachability
-  const approachability = clamp((trust * 0.4 + warmth * 0.4 + (10 - dominance) * 0.2), 1, 10);
-
-  // Threat
-  const threat = clamp((dominance * 0.5 + (10 - trust) * 0.3 + angry * 20 * 0.2), 1, 10);
-
-  return {
-    trustworthiness: +trust.toFixed(1),
-    dominance: +dominance.toFixed(1),
-    warmth: +warmth.toFixed(1),
-    competence: +competence.toFixed(1),
-    approachability: +approachability.toFixed(1),
-    threat: +threat.toFixed(1)
-  };
+  const approachability = clamp(trust * 0.4 + warmth * 0.4 + (10 - dominance) * 0.2, 1, 10);
+  const threat = clamp(dominance * 0.5 + (10 - trust) * 0.3 + angryPenalty * 2, 1, 10);
+  return { trustworthiness: +trust.toFixed(1), dominance: +dominance.toFixed(1), warmth: +warmth.toFixed(1), competence: +competence.toFixed(1), approachability: +approachability.toFixed(1), threat: +threat.toFixed(1) };
 }
 
-// ===== FINAL SCORE =====
-function computeFinal(structural, presScores, harmony, dimorphism, ageSc) {
-  const presAvg = presScores ? (
-    (presScores.skin_clarity?.score || 5) +
-    (presScores.coloring_contrast?.score || 5) +
-    (presScores.hair?.score || 5) +
-    (presScores.expression_quality?.score || 5) +
-    (presScores.grooming?.score || 5) +
-    (presScores.photo_quality?.score || 5)
-  ) / 6 : 5;
-  const harmAdj = clamp(harmony || 0, -1, 1);
-  const raw = structural * 0.45 + presAvg * 0.30 + dimorphism * 0.15 + ageSc * 0.10 + harmAdj;
-  return clamp(+raw.toFixed(1), 1.0, 10.0);
-}
-
-// ===== DRAW OVERLAY =====
+// ===== DRAW OVERLAY (brighter, more visible) =====
 function drawOverlay(canvas, img, points, metrics) {
   const ctx = canvas.getContext('2d');
   canvas.width = img.naturalWidth;
   canvas.height = img.naturalHeight;
-  const c1 = 'rgba(0,255,170,0.6)';
-  const c2 = 'rgba(0,255,170,0.2)';
-  const c3 = 'rgba(255,200,0,0.45)';
-  const cDim = 'rgba(255,255,255,0.12)';
-  const fSize = Math.max(10, canvas.width * 0.016);
-  const fSizeSmall = Math.max(8, canvas.width * 0.012);
+  const c1 = 'rgba(0,255,170,0.8)';
+  const c2 = 'rgba(0,255,170,0.35)';
+  const c3 = 'rgba(255,200,0,0.6)';
+  const fs = Math.max(12, canvas.width * 0.02);
+  const fsS = Math.max(9, canvas.width * 0.014);
 
-  // Landmark points
-  points.forEach(pt => {
-    ctx.beginPath();
-    ctx.arc(pt.x, pt.y, 1.5, 0, Math.PI * 2);
-    ctx.fillStyle = c2;
-    ctx.fill();
-  });
+  // Landmarks
+  points.forEach(pt => { ctx.beginPath(); ctx.arc(pt.x, pt.y, 2.5, 0, Math.PI*2); ctx.fillStyle = c2; ctx.fill(); });
 
   // Jawline trace
   ctx.beginPath();
-  for (let i = 0; i <= 16; i++) {
-    if (i === 0) ctx.moveTo(points[i].x, points[i].y);
-    else ctx.lineTo(points[i].x, points[i].y);
-  }
-  ctx.strokeStyle = 'rgba(0,255,170,0.15)';
-  ctx.lineWidth = 1;
-  ctx.stroke();
+  for (let i=0;i<=16;i++) { i===0?ctx.moveTo(points[i].x,points[i].y):ctx.lineTo(points[i].x,points[i].y); }
+  ctx.strokeStyle = 'rgba(0,255,170,0.25)'; ctx.lineWidth = 1.5; ctx.stroke();
 
   // Symmetry midline
   const midX = (points[0].x + points[16].x) / 2;
-  ctx.beginPath();
-  ctx.moveTo(midX, points[27].y - 40);
-  ctx.lineTo(midX, points[8].y + 15);
-  ctx.strokeStyle = c3;
-  ctx.lineWidth = 1;
-  ctx.setLineDash([5, 5]);
-  ctx.stroke();
-  ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(midX, points[27].y - 40); ctx.lineTo(midX, points[8].y + 15);
+  ctx.strokeStyle = c3; ctx.lineWidth = 1.5; ctx.setLineDash([5,5]); ctx.stroke(); ctx.setLineDash([]);
 
   // FWHR rectangle
   const mt = midpoint(points[21], points[22]);
-  ctx.strokeStyle = c1;
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = c1; ctx.lineWidth = 1.5;
   ctx.strokeRect(points[1].x, mt.y, points[15].x - points[1].x, points[51].y - mt.y);
 
-  // Canthal tilt lines (extended for visibility)
-  ctx.strokeStyle = c1;
-  ctx.lineWidth = 1.5;
-  // Left eye
-  ctx.beginPath();
-  ctx.moveTo(points[36].x - 5, points[36].y + (5 * Math.tan(angleDeg(points[36], points[39]) * Math.PI / 180)));
-  ctx.lineTo(points[39].x + 10, points[39].y - (10 * Math.tan(angleDeg(points[36], points[39]) * Math.PI / 180)));
-  ctx.stroke();
-  // Right eye
-  ctx.beginPath();
-  ctx.moveTo(points[42].x - 5, points[42].y + (5 * Math.tan(angleDeg(points[42], points[45]) * Math.PI / 180)));
-  ctx.lineTo(points[45].x + 10, points[45].y - (10 * Math.tan(angleDeg(points[42], points[45]) * Math.PI / 180)));
-  ctx.stroke();
+  // Canthal tilt lines
+  ctx.strokeStyle = c1; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(points[36].x, points[36].y); ctx.lineTo(points[39].x, points[39].y); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(points[42].x, points[42].y); ctx.lineTo(points[45].x, points[45].y); ctx.stroke();
 
   // Eye spacing line
-  const lEyeC = midpoint(points[36], points[39]);
-  const rEyeC = midpoint(points[42], points[45]);
-  ctx.strokeStyle = cDim;
-  ctx.lineWidth = 1;
-  ctx.setLineDash([2, 3]);
-  ctx.beginPath();
-  ctx.moveTo(lEyeC.x, lEyeC.y);
-  ctx.lineTo(rEyeC.x, rEyeC.y);
-  ctx.stroke();
-  ctx.setLineDash([]);
+  const lEC = midpoint(points[36], points[39]), rEC = midpoint(points[42], points[45]);
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1;
+  ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(lEC.x,lEC.y); ctx.lineTo(rEC.x,rEC.y); ctx.stroke(); ctx.setLineDash([]);
 
-  // Nose width line
-  ctx.strokeStyle = cDim;
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(points[31].x, points[31].y);
-  ctx.lineTo(points[35].x, points[35].y);
-  ctx.stroke();
-
-  // Mouth width line
-  ctx.beginPath();
-  ctx.moveTo(points[48].x, points[48].y);
-  ctx.lineTo(points[54].x, points[54].y);
-  ctx.stroke();
+  // Nose + mouth width
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(points[31].x,points[31].y); ctx.lineTo(points[35].x,points[35].y); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(points[48].x,points[48].y); ctx.lineTo(points[54].x,points[54].y); ctx.stroke();
 
   // Thirds dividers
-  const browY = Math.min(points[19].y, points[24].y);
-  const noseY = points[33].y;
-  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
-  ctx.lineWidth = 1;
-  ctx.setLineDash([3, 4]);
-  [browY, noseY].forEach(y => {
-    ctx.beginPath();
-    ctx.moveTo(points[0].x - 10, y);
-    ctx.lineTo(points[16].x + 10, y);
-    ctx.stroke();
-  });
+  const browY = Math.min(points[19].y, points[24].y), noseY = points[33].y;
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.setLineDash([4,4]);
+  [browY, noseY].forEach(y => { ctx.beginPath(); ctx.moveTo(points[0].x-10,y); ctx.lineTo(points[16].x+10,y); ctx.stroke(); });
   ctx.setLineDash([]);
 
-  // Thirds labels (left side)
-  ctx.font = `${fSizeSmall}px DM Mono, monospace`;
-  ctx.fillStyle = 'rgba(255,255,255,0.25)';
-  ctx.textAlign = 'right';
-  const thLabelX = points[0].x - 15;
-  ctx.fillText(`U ${metrics.thirds.upper}%`, thLabelX, browY - 10);
-  ctx.fillText(`M ${metrics.thirds.mid}%`, thLabelX, (browY + noseY) / 2);
-  ctx.fillText(`L ${metrics.thirds.lower}%`, thLabelX, noseY + 20);
+  // Labels right side
+  ctx.font = `${fs}px DM Mono, monospace`; ctx.fillStyle = c1; ctx.textAlign = 'left';
+  const lx = points[16].x + 20; let ly = points[19].y; const gap = fs * 2;
+  ctx.fillText(`SYM ${metrics.symmetry.score.toFixed(1)}`, lx, ly); ly += gap;
+  ctx.fillText(`FWHR ${metrics.fwhr.value}`, lx, ly); ly += gap;
+  ctx.fillText(`CT ${metrics.canthalTilt.degrees > 0 ? '+' : ''}${metrics.canthalTilt.degrees}°`, lx, ly); ly += gap;
+  ctx.fillText(`JAW ${metrics.jawline.angle}°`, lx, ly); ly += gap;
+  ctx.fillStyle = c3;
+  ctx.fillText(`GR ${metrics.goldenRatio.score.toFixed(1)}`, lx, ly); ly += gap;
+  ctx.fillText(`DIM ${metrics.dimorphism.score.toFixed(1)}`, lx, ly);
 
-  // Measurement labels (right side)
-  ctx.font = `${fSize}px DM Mono, monospace`;
-  ctx.fillStyle = 'rgba(0,255,170,0.75)';
-  ctx.textAlign = 'left';
-  const labelX = points[16].x + 18;
-  let labelY = points[19].y;
-  const labelGap = fSize * 1.8;
-
-  ctx.fillText(`SYM ${metrics.symmetry.score.toFixed(1)}`, labelX, labelY);
-  labelY += labelGap;
-  ctx.fillText(`FWHR ${metrics.fwhr.value}`, labelX, labelY);
-  labelY += labelGap;
-  ctx.fillText(`CT ${metrics.canthalTilt.degrees > 0 ? '+' : ''}${metrics.canthalTilt.degrees}°`, labelX, labelY);
-  labelY += labelGap;
-  ctx.fillText(`JAW ${metrics.jawline.angle}°`, labelX, labelY);
-  labelY += labelGap;
-  ctx.fillText(`GR ${metrics.goldenRatio.score.toFixed(1)}`, labelX, labelY);
-  labelY += labelGap;
-  ctx.fillStyle = 'rgba(255,200,0,0.6)';
-  ctx.fillText(`ES ${metrics.eyeSpacing.ratio}`, labelX, labelY);
-  labelY += labelGap;
-  ctx.fillText(`NR ${metrics.nose.ratio}`, labelX, labelY);
-
+  // Thirds labels left
+  ctx.font = `${fsS}px DM Mono, monospace`; ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.textAlign = 'right';
+  const tlx = points[0].x - 15;
+  ctx.fillText(`U ${metrics.thirds.upper}%`, tlx, browY - 5);
+  ctx.fillText(`M ${metrics.thirds.mid}%`, tlx, (browY + noseY) / 2);
+  ctx.fillText(`L ${metrics.thirds.lower}%`, tlx, noseY + 15);
   ctx.textAlign = 'start';
 }
 
-// Composite the analysis image + overlay into a single data URL
 function getAnnotatedImage(img, canvas) {
-  const comp = document.createElement('canvas');
-  comp.width = canvas.width;
-  comp.height = canvas.height;
-  const ctx = comp.getContext('2d');
-  ctx.drawImage(img, 0, 0, comp.width, comp.height);
-  ctx.drawImage(canvas, 0, 0);
-  return comp.toDataURL('image/jpeg', 0.92);
+  const c = document.createElement('canvas'); c.width = canvas.width; c.height = canvas.height;
+  const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0, c.width, c.height); ctx.drawImage(canvas, 0, 0);
+  return c.toDataURL('image/jpeg', 0.92);
+}
+
+// ===== SCAN ANIMATION =====
+function showScanEffect() {
+  const overlay = document.getElementById('scan-overlay');
+  overlay.innerHTML = `
+    <div class="scan-line"></div>
+    <div class="scan-grid"></div>
+    <div class="scan-corners"></div>
+    <div class="scan-label" id="scan-phase">DETECTING FACE</div>
+  `;
+}
+
+function updateScanPhase(text) {
+  const el = document.getElementById('scan-phase');
+  if (el) el.textContent = text;
 }
 
 // ===== SCREENS =====
@@ -602,36 +502,35 @@ async function analyze(file) {
   errorEl.style.display = 'none';
   bar.style.width = '5%';
 
-  // Load image
   const img = document.getElementById('analysis-img');
   const canvas = document.getElementById('overlay-canvas');
   const dataUrl = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(file); });
   img.src = dataUrl;
   await new Promise(r => { img.onload = r; });
 
-  // Fix orientation
+  // Scale if very large
   const maxDim = 1200;
-  const scale = Math.min(1, maxDim / Math.max(img.naturalWidth, img.naturalHeight));
-  const offscreen = document.createElement('canvas');
-  offscreen.width = img.naturalWidth * scale;
-  offscreen.height = img.naturalHeight * scale;
-  offscreen.getContext('2d').drawImage(img, 0, 0, offscreen.width, offscreen.height);
-  img.src = offscreen.toDataURL('image/jpeg', 0.9);
-  await new Promise(r => { img.onload = r; });
+  if (img.naturalWidth > maxDim || img.naturalHeight > maxDim) {
+    const scale = maxDim / Math.max(img.naturalWidth, img.naturalHeight);
+    const off = document.createElement('canvas');
+    off.width = img.naturalWidth * scale; off.height = img.naturalHeight * scale;
+    off.getContext('2d').drawImage(img, 0, 0, off.width, off.height);
+    img.src = off.toDataURL('image/jpeg', 0.9);
+    await new Promise(r => { img.onload = r; });
+  }
 
-  status.textContent = 'Detecting facial landmarks...';
+  // Start scan animation
+  showScanEffect();
   bar.style.width = '15%';
+  status.textContent = 'Scanning facial structure...';
 
-  // Detect face
+  // Detect
   let detection;
   try {
-    detection = await faceapi
-      .detectSingleFace(img)
-      .withFaceLandmarks()
-      .withFaceExpressions()
-      .withAgeAndGender();
+    detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceExpressions().withAgeAndGender();
+    bar.style.width = '30%';
   } catch (e) {
-    errorEl.textContent = 'Face detection failed: ' + e.message;
+    errorEl.textContent = 'Detection failed: ' + e.message;
     errorEl.style.display = 'block';
     return;
   }
@@ -642,27 +541,26 @@ async function analyze(file) {
     return;
   }
 
+  updateScanPhase('MAPPING LANDMARKS');
   status.textContent = 'Computing structural metrics...';
-  bar.style.width = '35%';
+  bar.style.width = '40%';
 
   const landmarks = detection.landmarks;
-  const age = detection.age;
-  const gender = detection.gender;
-  const expressions = detection.expressions;
+  const metrics = computeAllMetrics(landmarks, detection, detection.age, detection.gender, detection.expressions);
+  const physiognomy = computePhysiognomy(landmarks.positions, detection.expressions, detection.gender, metrics);
 
-  // Compute metrics
-  const metrics = computeAllMetrics(landmarks, detection, age, gender, expressions);
-  const physiognomy = computePhysiognomy(landmarks.positions, expressions, gender, metrics);
+  updateScanPhase('COMPUTING RATIOS');
+  bar.style.width = '50%';
 
   // Draw overlay
   drawOverlay(canvas, img, landmarks.positions, metrics);
   const annotatedImgUrl = getAnnotatedImage(img, canvas);
-  bar.style.width = '50%';
 
-  status.textContent = 'Analyzing presentation...';
+  updateScanPhase('ANALYZING PRESENTATION');
+  status.textContent = 'AI analyzing presentation...';
   bar.style.width = '55%';
 
-  // Prepare base64 for Claude
+  // Prepare base64
   const base64 = dataUrl.split(',')[1];
   const mediaType = dataUrl.split(';')[0].split(':')[1];
 
@@ -672,17 +570,10 @@ async function analyze(file) {
     const resp = await fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        image: base64,
-        media_type: mediaType,
-        metrics: { structural: metrics, physiognomy }
-      })
+      body: JSON.stringify({ image: base64, media_type: mediaType, metrics: { structural: metrics, physiognomy } })
     });
     bar.style.width = '85%';
-    if (!resp.ok) {
-      const err = await resp.json();
-      throw new Error(err.error || 'API error');
-    }
+    if (!resp.ok) { const err = await resp.json(); throw new Error(err.error || 'API error'); }
     claudeData = await resp.json();
   } catch (e) {
     errorEl.textContent = 'Analysis error: ' + e.message;
@@ -690,56 +581,50 @@ async function analyze(file) {
     return;
   }
 
+  updateScanPhase('BUILDING REPORT');
   bar.style.width = '95%';
   status.textContent = 'Building report...';
 
-  // Compute final score
-  const finalScore = computeFinal(
-    metrics.structural,
-    claudeData.presentation,
-    claudeData.harmony?.adjustment,
-    metrics.dimorphism.score,
-    metrics.ageScore.score
-  );
+  // Compute final score WITH Claude's structural adjustment
+  const structAdj = clamp(claudeData.structural_adjustment || 0, -2.5, 2.5);
+  const adjustedStructural = clamp(metrics.structural + structAdj, 1, 10);
 
-  // Compute projections
+  const pres = claudeData.presentation || {};
+  const presAvg = ((pres.skin_clarity?.score||5)+(pres.coloring_contrast?.score||5)+(pres.hair?.score||5)+(pres.expression_quality?.score||5)+(pres.grooming?.score||5)+(pres.photo_quality?.score||5))/6;
+
+  const harmonyAdj = clamp(claudeData.harmony?.adjustment || 0, -1, 1);
+  const finalScore = clamp(adjustedStructural * 0.50 + presAvg * 0.35 + metrics.dimorphism.score * 0.15 + harmonyAdj, 1, 10);
+
   const todayBumps = (claudeData.today_moves || []).reduce((s, m) => s + (m.bump || 0), 0);
   const regimenBumps = (claudeData.regimen_moves || []).reduce((s, m) => s + (m.bump || 0), 0);
   const todayCeiling = clamp(+(finalScore + todayBumps).toFixed(1), finalScore, 10);
   const regimenCeiling = clamp(+(todayCeiling + regimenBumps).toFixed(1), todayCeiling, 10);
 
-  // Presentation avg
-  const pres = claudeData.presentation || {};
-  const presAvg = ((pres.skin_clarity?.score||5)+(pres.coloring_contrast?.score||5)+(pres.hair?.score||5)+(pres.expression_quality?.score||5)+(pres.grooming?.score||5)+(pres.photo_quality?.score||5))/6;
-
   bar.style.width = '100%';
-  setTimeout(() => renderReport(metrics, physiognomy, claudeData, finalScore, todayCeiling, regimenCeiling, presAvg, annotatedImgUrl), 400);
+  setTimeout(() => renderReport(metrics, physiognomy, claudeData, finalScore, todayCeiling, regimenCeiling, presAvg, adjustedStructural, annotatedImgUrl), 500);
+}
+
+// ===== SCORE ANIMATION =====
+function animateScore(el, target) {
+  let current = 0;
+  const step = target / 40;
+  const interval = setInterval(() => {
+    current += step;
+    if (current >= target) { current = target; clearInterval(interval); }
+    el.textContent = current.toFixed(1);
+  }, 30);
 }
 
 // ===== RENDER REPORT =====
-function renderReport(m, phys, cd, finalScore, todayCeil, regimenCeil, presAvg, annotatedImgUrl) {
+function renderReport(m, phys, cd, finalScore, todayCeil, regimenCeil, presAvg, adjStructural, annotatedImgUrl) {
   showScreen('report-screen');
   const r = document.getElementById('report');
-
-  // Section builder
-  let sectionNum = 0;
-  function sec(title, html) {
-    sectionNum++;
-    return `<div class="section">
-      <div class="section-num">${String(sectionNum).padStart(2,'0')}</div>
-      <div class="section-title">${esc(title)}</div>
-      ${html}
-    </div><div class="section-divider"></div>`;
-  }
-
+  let sn = 0;
+  function sec(title, html) { sn++; return `<div class="section"><div class="section-num">${String(sn).padStart(2,'0')}</div><div class="section-title">${esc(title)}</div>${html}</div><div class="section-divider"></div>`; }
   let html = '';
 
   // ANNOTATED PHOTO
-  html += `<div class="section">
-    <div class="annotated-photo">
-      <img src="${annotatedImgUrl}" alt="Annotated facial analysis" style="width:100%;border-radius:6px;margin-bottom:16px;">
-    </div>
-  </div>`;
+  html += `<div class="section"><div class="annotated-photo"><img src="${annotatedImgUrl}" alt="Analysis"></div></div>`;
 
   // 01 — ARCHETYPE
   html += sec('Read', `
@@ -750,15 +635,12 @@ function renderReport(m, phys, cd, finalScore, todayCeil, regimenCeil, presAvg, 
 
   // 02 — OVERALL SCORE
   html += sec('Overall Score', `
-    <div class="score-hero">
-      <span class="score-big">${finalScore.toFixed(1)}</span>
-      <span class="score-of">/ 10</span>
-    </div>
-    <div class="score-layers">
+    <div class="big-score" id="score-display">0.0</div><span class="big-score-sub">/ 10</span>
+    <div style="margin-top:20px">
       <div class="score-layer">
         <span class="score-layer-label">Structural</span>
-        <div class="score-layer-bar"><div class="score-layer-fill" style="width:${m.structural*10}%;background:${scoreColor(m.structural)}"></div></div>
-        <span class="score-layer-val">${m.structural.toFixed(1)}</span>
+        <div class="score-layer-bar"><div class="score-layer-fill" style="width:${adjStructural*10}%;background:${scoreColor(adjStructural)}"></div></div>
+        <span class="score-layer-val">${adjStructural.toFixed(1)}</span>
       </div>
       <div class="score-layer">
         <span class="score-layer-label">Presentation</span>
@@ -771,167 +653,172 @@ function renderReport(m, phys, cd, finalScore, todayCeil, regimenCeil, presAvg, 
         <span class="score-layer-val">${m.dimorphism.score}</span>
       </div>
       <div class="score-layer">
-        <span class="score-layer-label">Age Factor</span>
-        <div class="score-layer-bar"><div class="score-layer-fill" style="width:${m.ageScore.score*10}%;background:${scoreColor(m.ageScore.score)}"></div></div>
-        <span class="score-layer-val">${m.ageScore.score}</span>
-      </div>
-      <div class="score-layer">
         <span class="score-layer-label">Harmony</span>
         <div class="score-layer-bar"><div class="score-layer-fill" style="width:${((cd.harmony?.adjustment||0)+1)*50}%;background:${(cd.harmony?.adjustment||0)>=0?'#7abd7a':'#8a5a5a'}"></div></div>
-        <span class="score-layer-val">${(cd.harmony?.adjustment||0) > 0 ? '+' : ''}${(cd.harmony?.adjustment||0).toFixed(1)}</span>
+        <span class="score-layer-val">${(cd.harmony?.adjustment||0)>0?'+':''}${(cd.harmony?.adjustment||0).toFixed(1)}</span>
       </div>
     </div>
-    ${cd.harmony?.note ? `<div class="section-body">${esc(cd.harmony.note)}</div>` : ''}
+    <div class="score-context">
+      <strong>Structural</strong> — bone structure, proportions, and symmetry from landmark analysis${cd.structural_adjustment_note ? ` (${esc(cd.structural_adjustment_note)})` : ''}<br>
+      <strong>Presentation</strong> — grooming, skin, hair, expression, and photo quality<br>
+      <strong>Dimorphism</strong> — strength of ${m.gender === 'male' ? 'masculine' : 'feminine'} feature markers<br>
+      <strong>Harmony</strong> — how well features synergize beyond individual measurements
+    </div>
+    ${cd.harmony?.note ? `<div class="score-context" style="margin-top:8px;font-style:italic">${esc(cd.harmony.note)}</div>` : ''}
   `);
 
   // 03 — PROJECTION
   html += sec('Score Projection', `
     <div class="projection">
-      <div class="proj-node">
-        <div class="proj-label">Current</div>
-        <div class="proj-val current">${finalScore.toFixed(1)}</div>
-      </div>
+      <div class="proj-node"><div class="proj-label">Current</div><div class="proj-val current">${finalScore.toFixed(1)}</div></div>
       <div class="proj-arrow">→</div>
-      <div class="proj-node">
-        <div class="proj-label">Today's Ceiling</div>
-        <div class="proj-val today">${todayCeil.toFixed(1)}</div>
-      </div>
+      <div class="proj-node"><div class="proj-label">Today's Ceiling</div><div class="proj-val today">${todayCeil.toFixed(1)}</div></div>
       <div class="proj-arrow">→</div>
-      <div class="proj-node">
-        <div class="proj-label">90-Day Potential</div>
-        <div class="proj-val regimen">${regimenCeil.toFixed(1)}</div>
-      </div>
+      <div class="proj-node"><div class="proj-label">90-Day Potential</div><div class="proj-val regimen">${regimenCeil.toFixed(1)}</div></div>
     </div>
   `);
 
-  // 04 — STRUCTURAL METRICS
+  // 04 — STRUCTURAL ANALYSIS
   let metricsHTML = '';
-  metricsHTML += metricBarHTML('Symmetry', m.symmetry.score, m.symmetry.score.toFixed(1), `${m.symmetry.deviation}% bilateral deviation`, '5.0', 1, 10, 5);
-  metricsHTML += metricBarHTML('FWHR', m.fwhr.value, m.fwhr.value.toFixed(2), '', '1.90', 1.5, 2.4, 1.9);
-  metricsHTML += metricBarHTML('Canthal Tilt', m.canthalTilt.degrees, (m.canthalTilt.degrees > 0 ? '+' : '') + m.canthalTilt.degrees + '°', '', '0°', -6, 8, 0);
+  metricsHTML += metricBarHTML('Symmetry', m.symmetry.score, 'How closely left and right sides mirror each other', `${m.symmetry.deviation}% bilateral deviation`);
+  metricsHTML += metricBarHTML('FWHR', m.fwhr.score, 'Face width relative to midface height — higher signals strength', `Measured: ${m.fwhr.value} · Ideal: ${m.gender==='male'?'1.95':'1.80'}`);
+  metricsHTML += metricBarHTML('Canthal Tilt', m.canthalTilt.score, 'Eye corner angle — positive (upward outer corners) reads as more attractive', `${m.canthalTilt.degrees > 0 ? '+' : ''}${m.canthalTilt.degrees}° · Ideal: +${m.gender==='male'?'5':'6'}°`);
 
-  // Thirds bar
   metricsHTML += `<div class="metric-item">
-    <div class="metric-top">
-      <span class="metric-name">Thirds</span>
-      <span class="metric-value">${esc(m.thirds.balance)}</span>
-      <span class="metric-avg">ideal: 33/33/33</span>
-    </div>
+    <div class="metric-header"><span class="metric-name">Thirds</span><span class="metric-score" style="color:${scoreColor(m.thirds.score)}">${m.thirds.score.toFixed(1)}</span></div>
+    <div class="metric-context">Vertical face proportions — ideal is equal upper, middle, and lower thirds</div>
     <div class="thirds-bar">
       <div class="thirds-seg" style="width:${m.thirds.upper}%;background:#1a1a1a">U ${m.thirds.upper}%</div>
       <div class="thirds-seg" style="width:${m.thirds.mid}%;background:#141414">M ${m.thirds.mid}%</div>
       <div class="thirds-seg" style="width:${m.thirds.lower}%;background:#1a1a1a">L ${m.thirds.lower}%</div>
     </div>
+    <div class="metric-raw">${esc(m.thirds.balance)} · Ideal: 33/33/33</div>
   </div>`;
 
-  metricsHTML += metricBarHTML('Eye Spacing', m.eyeSpacing.score, m.eyeSpacing.ratio.toFixed(3), '', '0.460', 0.35, 0.55, 0.46);
-  metricsHTML += metricBarHTML('Jawline', m.jawline.score, m.jawline.angle + '°', '', `${m.gender === 'male' ? '128' : '135'}°`, 100, 160, m.gender === 'male' ? 128 : 135);
-  metricsHTML += metricBarHTML('Nose Ratio', m.nose.score, m.nose.ratio.toFixed(2), '', '0.65', 0.4, 0.9, 0.65);
-  metricsHTML += metricBarHTML('Mouth Ratio', m.mouth.score, m.mouth.ratio.toFixed(2), '', '0.40', 0.25, 0.55, 0.40);
-  metricsHTML += metricBarHTML('Lip Ratio', m.lips.score, m.lips.ratio.toFixed(2), '', `${m.gender === 'female' ? '0.75' : '0.70'}`, 0.3, 1.2, m.gender === 'female' ? 0.75 : 0.70);
-  metricsHTML += metricBarHTML('Golden Ratio', m.goldenRatio.score, m.goldenRatio.score.toFixed(1), `Avg deviation: ${m.goldenRatio.avgDeviation}`, '5.0', 1, 10, 5);
-  metricsHTML += metricBarHTML('Dimorphism', m.dimorphism.score, m.dimorphism.score.toFixed(1), m.gender === 'male' ? 'Masculine feature strength' : 'Feminine feature strength', '5.0', 1, 10, 5);
-
+  metricsHTML += metricBarHTML('Eye Spacing', m.eyeSpacing.score, 'Distance between eye centers relative to face width', `Ratio: ${m.eyeSpacing.ratio.toFixed(3)} · Ideal: 0.460`);
+  metricsHTML += metricBarHTML('Jawline', m.jawline.score, `Chin angle — ${m.gender==='male'?'sharper (lower °) signals stronger jaw':'softer angles complement feminine features'}`, `${m.jawline.angle}° · Ideal: ${m.gender==='male'?'128':'135'}°`);
+  metricsHTML += metricBarHTML('Nose Ratio', m.nose.score, 'Nose width relative to interocular distance', `Ratio: ${m.nose.ratio.toFixed(2)} · Ideal: 0.65`);
+  metricsHTML += metricBarHTML('Mouth Ratio', m.mouth.score, 'Mouth width relative to face width', `Ratio: ${m.mouth.ratio.toFixed(2)} · Ideal: 0.40`);
+  metricsHTML += metricBarHTML('Lip Ratio', m.lips.score, 'Upper to lower lip proportion balance', `Ratio: ${m.lips.ratio.toFixed(2)} · Ideal: ${m.gender==='female'?'0.75':'0.70'}`);
+  metricsHTML += metricBarHTML('Golden Ratio', m.goldenRatio.score, 'How closely key proportions approach the golden ratio (1.618)', `Avg deviation: ${m.goldenRatio.avgDeviation}`);
+  metricsHTML += metricBarHTML('Dimorphism', m.dimorphism.score, `Strength of ${m.gender==='male'?'masculine':'feminine'} features — jaw, brow, and eye area markers`, `${m.gender==='male'?'Masculine':'Feminine'} feature composite`);
   html += sec('Structural Analysis', metricsHTML);
 
-  // 05 — PERSONALITY PROFILE
+  // 05 — PERSONALITY
   let physHTML = '';
-  physHTML += metricBarHTML('Trust', phys.trustworthiness, phys.trustworthiness.toFixed(1), '', '5.0', 1, 10, 5);
-  physHTML += metricBarHTML('Dominance', phys.dominance, phys.dominance.toFixed(1), '', '5.0', 1, 10, 5);
-  physHTML += metricBarHTML('Warmth', phys.warmth, phys.warmth.toFixed(1), '', '5.0', 1, 10, 5);
-  physHTML += metricBarHTML('Competence', phys.competence, phys.competence.toFixed(1), '', '5.0', 1, 10, 5);
-  physHTML += metricBarHTML('Approachable', phys.approachability, phys.approachability.toFixed(1), '', '5.0', 1, 10, 5);
-  physHTML += metricBarHTML('Threat', phys.threat, phys.threat.toFixed(1), '', '5.0', 1, 10, 5);
-  physHTML += `<div class="personality-text">${esc(cd.personality_read || '')}</div>`;
+  physHTML += metricBarHTML('Trust', phys.trustworthiness, 'How instinctively trustworthy the face appears to others', null);
+  physHTML += metricBarHTML('Dominance', phys.dominance, 'Perceived authority and command presence', null);
+  physHTML += metricBarHTML('Warmth', phys.warmth, 'Emotional openness and approachability others sense', null);
+  physHTML += metricBarHTML('Competence', phys.competence, 'Perceived capability and reliability', null);
+  physHTML += metricBarHTML('Approachable', phys.approachability, 'How comfortable strangers feel initiating contact', null);
+  physHTML += metricBarHTML('Threat', phys.threat, 'Perceived danger level — lower is more approachable', null);
+  physHTML += cd.personality_read ? `<div class="section-body">${esc(cd.personality_read)}</div>` : '';
   html += sec('Personality Profile', physHTML);
 
   // 06 — PRESENTATION
   let presHTML = '';
-  const presItems = [
-    ['Skin Clarity', cd.presentation?.skin_clarity],
-    ['Coloring', cd.presentation?.coloring_contrast],
-    ['Hair', cd.presentation?.hair],
-    ['Expression', cd.presentation?.expression_quality],
-    ['Grooming', cd.presentation?.grooming],
-    ['Photo Quality', cd.presentation?.photo_quality]
-  ];
-  presItems.forEach(([name, data]) => {
+  const presMap = { skin_clarity: 'Skin Clarity', coloring_contrast: 'Coloring', hair: 'Hair', expression_quality: 'Expression', grooming: 'Grooming', photo_quality: 'Photo Quality' };
+  const presCtx = { skin_clarity: 'Texture, evenness, pores, and blemishes', coloring_contrast: 'Contrast between features and skin tone', hair: 'Style, quality, and how it frames the face', expression_quality: 'How current expression affects attractiveness', grooming: 'Facial hair maintenance, brow shaping, upkeep', photo_quality: 'Lighting, angle, focus, and background' };
+  for (const [key, label] of Object.entries(presMap)) {
+    const data = (cd.presentation || {})[key];
     const sc = data?.score || 5;
-    presHTML += metricBarHTML(name, sc, sc.toFixed(0), data?.note || '', '5', 1, 10, 5);
-  });
+    presHTML += `<div class="metric-item">
+      <div class="metric-header"><span class="metric-name">${esc(label)}</span><span class="metric-score" style="color:${scoreColor(sc)}">${sc}</span></div>
+      <div class="metric-context">${esc(presCtx[key])}</div>
+      <div class="metric-bar-wrap">
+        <div class="metric-bar-track"></div>
+        <div class="metric-bar-avg" style="left:${((5-1)/9)*100}%"></div>
+        <div class="metric-bar-dot" style="left:calc(${((sc-1)/9)*100}% - 6px);background:${sc >= 5 ? '#fff' : '#888'}"></div>
+      </div>
+      <div class="metric-bar-labels"><span>1</span><span>5</span><span>10</span></div>
+      ${data?.note ? `<div class="metric-raw">${esc(data.note)}</div>` : ''}
+    </div>`;
+  }
   html += sec('Presentation Factors', presHTML);
 
-  // 07 — BEST FEATURES + LEAKS
-  let archHTML = '<div class="opt-tier-label">Strongest Architecture</div>';
-  (cd.best_features || []).forEach(f => {
-    archHTML += `<div class="feature-item"><div class="feature-name">${esc(f.feature)}</div><div class="feature-detail">${esc(f.detail)}</div></div>`;
-  });
-  archHTML += '<div class="opt-tier-label" style="margin-top:24px">Structural Leaks</div>';
-  (cd.leaks || []).forEach(l => {
-    archHTML += `<div class="feature-item"><div class="feature-name" style="color:#8a5a5a">${esc(l.issue)}</div><div class="feature-detail">${esc(l.detail)}</div></div>`;
-  });
+  // 07 — ARCHITECTURE
+  let archHTML = '<div class="arch-label">Strongest Architecture</div>';
+  (cd.best_features || []).forEach(f => { archHTML += `<div class="arch-feature">${esc(f.feature)}</div><div class="arch-detail">${esc(f.detail)}</div>`; });
+  archHTML += '<div class="arch-label">Structural Leaks</div>';
+  (cd.leaks || []).forEach(f => { archHTML += `<div class="leak-feature">${esc(f.issue)}</div><div class="arch-detail">${esc(f.detail)}</div>`; });
   html += sec('Architecture', archHTML);
 
   // 08 — OPTIMIZATION
-  let optHTML = '<div class="opt-tier-label">Today — Immediate Impact</div>';
-  (cd.today_moves || []).forEach(mv => {
-    optHTML += `<div class="opt-item">
-      <span class="opt-bump">+${(mv.bump||0).toFixed(1)}</span>
-      <div class="opt-text"><div class="opt-action">${esc(mv.action)}</div><div class="opt-detail">${esc(mv.detail)}</div></div>
-    </div>`;
-  });
-  optHTML += '<div class="opt-tier-label">90-Day Regimen</div>';
-  (cd.regimen_moves || []).forEach(mv => {
-    optHTML += `<div class="opt-item">
-      <span class="opt-bump">+${(mv.bump||0).toFixed(1)}</span>
-      <div class="opt-text"><div class="opt-action">${esc(mv.action)}</div><div class="opt-detail">${esc(mv.detail)}</div></div>
-    </div>`;
-  });
-  optHTML += `<div class="bf-ref">
-    <div class="bf-ref-title">Body Fat Reference — Optimal Facial Definition</div>
-    <div class="bf-ref-row"><span>Men</span><span class="bf-ref-val">10 – 15%</span></div>
-    <div class="bf-ref-row"><span>Women</span><span class="bf-ref-val">18 – 22%</span></div>
-  </div>`;
+  let optHTML = '<div class="opt-label">Today — Immediate Impact</div>';
+  (cd.today_moves || []).forEach(m => { optHTML += `<div class="opt-item"><div class="opt-bump">+${(m.bump||0).toFixed(1)}</div><div class="opt-content"><div class="opt-action">${esc(m.action)}</div><div class="opt-detail">${esc(m.detail)}</div></div></div>`; });
+  optHTML += '<div class="opt-label">90-Day Regimen</div>';
+  (cd.regimen_moves || []).forEach(m => { optHTML += `<div class="opt-item"><div class="opt-bump">+${(m.bump||0).toFixed(1)}</div><div class="opt-content"><div class="opt-action">${esc(m.action)}</div><div class="opt-detail">${esc(m.detail)}</div></div></div>`; });
+  optHTML += `<div class="bf-ref"><div class="bf-ref-title">Body Fat Reference — Optimal Facial Definition</div><div class="bf-row"><span>Men</span><span>10 – 15%</span></div><div class="bf-row"><span>Women</span><span>18 – 22%</span></div></div>`;
   html += sec('Optimization', optHTML);
 
-  // 09 — BEST ANGLE
+  // 09 — LOOKSMAXXING
+  if (cd.looksmaxxing && cd.looksmaxxing.length > 0) {
+    let lmHTML = '<div style="font-size:13px;color:#555;margin-bottom:16px">Techniques matched to your specific structural profile, ranked by expected return on effort.</div>';
+    cd.looksmaxxing.forEach(lm => {
+      const roi = (lm.roi || 'medium').toLowerCase();
+      const ev = (lm.evidence || 'moderate').toLowerCase();
+      lmHTML += `<div class="lm-item" data-roi="${roi}">
+        <div class="lm-header">
+          <span class="lm-technique">${esc(lm.technique)}</span>
+          <div class="lm-badges">
+            <span class="lm-badge roi-${roi}">${roi} roi</span>
+            <span class="lm-badge evidence">${ev}</span>
+          </div>
+        </div>
+        <div class="lm-target">Targets: ${esc(lm.target)}</div>
+        <div class="lm-detail">${esc(lm.detail)}</div>
+      </div>`;
+    });
+    html += sec('Looksmaxxing', lmHTML);
+  }
+
+  // 10 — BEST ANGLE
   html += sec('Best Angle', `
-    <div class="angle-side">${esc(cd.best_angle?.side || 'center')}</div>
+    <div class="angle-val">${esc(cd.best_angle?.side || 'center')}</div>
     <div class="angle-note">${esc(cd.best_angle?.note || '')}</div>
   `);
 
-  // Methodology
-  html += `<div class="methodology">
-    This analysis evaluates structural and visual attributes from a single photograph using 68-point facial landmark detection,
-    computed geometric ratios, and AI-assisted presentation assessment. Charisma, voice, and interpersonal presence are not captured.
-    Structural metrics are mathematically computed. Presentation scores are AI-assessed. All measurements are relative, not absolute.
+  // ACTIONS
+  html += `<div class="report-actions">
+    <button class="action-btn" onclick="shareReport()">Share</button>
+    <button class="action-btn" onclick="location.reload()">New Analysis</button>
   </div>`;
 
-  // New analysis button
-  html += `<div style="text-align:center"><button class="new-btn" onclick="location.reload()">New Analysis</button></div>`;
+  // METHODOLOGY
+  html += `<div class="methodology">This analysis evaluates structural and visual attributes from a single photograph using 68-point facial landmark detection, computed geometric ratios, and AI-assisted presentation assessment. Personality perception scores are based on Todorov's research on facial trait inference — they reflect how others perceive the face, not who the person is. Structural metrics are mathematically computed. Presentation scores are AI-assessed. All measurements are relative, not absolute. Looksmaxxing recommendations range from well-established to anecdotal — always research techniques independently before committing.</div>`;
 
   r.innerHTML = html;
+
+  // Animate score
+  setTimeout(() => {
+    const scoreEl = document.getElementById('score-display');
+    if (scoreEl) animateScore(scoreEl, finalScore);
+  }, 300);
 }
 
-// ===== EVENT LISTENERS =====
-document.getElementById('upload-btn').addEventListener('click', () => {
-  document.getElementById('file-input').click();
-});
-
-document.getElementById('file-input').addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (file) analyze(file);
-});
-
-// Load models on page load
-if (typeof faceapi !== 'undefined') {
-  loadModels();
-} else {
-  // face-api.js might not be loaded yet (defer)
-  window.addEventListener('load', () => {
-    if (typeof faceapi !== 'undefined') loadModels();
-    else document.getElementById('model-status').textContent = 'Failed to load face-api.js library';
-  });
+// ===== SHARE =====
+async function shareReport() {
+  const reportEl = document.getElementById('report');
+  try {
+    const canvas = await html2canvas(reportEl, { backgroundColor: '#0a0a0a', scale: 1, useCORS: true });
+    canvas.toBlob(async blob => {
+      if (navigator.share && navigator.canShare) {
+        const file = new File([blob], 'read-analysis.png', { type: 'image/png' });
+        try {
+          await navigator.share({ title: 'READ — Facial Analysis', files: [file] });
+          return;
+        } catch (e) { /* fall through to download */ }
+      }
+      // Fallback: download
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'read-analysis.png';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 'image/png');
+  } catch (e) {
+    console.error('Share error:', e);
+    alert('Share failed. Try screenshotting the report.');
+  }
 }
 </script>
 </body>
