@@ -16,9 +16,9 @@ Analyze the face in this photo. Respond with ONLY valid JSON — no markdown, no
   "personality": "One to two rich paragraphs. Read bone structure for strengths and vulnerabilities. Strong jaw = willpower but stubbornness. Midface harmony = trustworthiness but getting taken for granted. Eye shape tells the three-second story. Real-world translation: apps, interviews, group settings.",
   "shadow": "Concise paragraph on vulnerabilities and blind spots. The tax on the architecture. Honest but motivating.",
   "rating": 7.2,
-  "rating_context": "One sentence placing this face on a scale where Matt Bomer is the male 10/10 benchmark and Adriana Lima is the female 10/10 benchmark — use whichever matches the gender of the person in the photo.",
+  "rating_context": "One sentence contextualizing where this face sits on the scale. Be specific about what structural elements place it here. Do NOT reference any celebrities or public figures by name.",
   "ceiling": 8.1,
-  "ceiling_context": "One sentence on what is realistic with optimization.",
+  "ceiling_context": "One sentence on what is realistic with optimization. Do NOT reference any celebrities or public figures by name.",
   "best_features": [
     {"feature": "Name", "detail": "Why this carries the face. 1-2 sentences."},
     {"feature": "Name", "detail": "Second strongest feature. 1-2 sentences."}
@@ -36,7 +36,7 @@ Analyze the face in this photo. Respond with ONLY valid JSON — no markdown, no
   "first_impression": "Exactly 6 words — what strangers feel in 3 seconds."
 }
 
-Tone: Confident, direct. Blend terminology (ramus, canthal tilt, FWHR) with natural rhythm. Motivating not soft. No filler. No disclaimers. Rating: most people 5-8. Be honest and specific to THIS face.`;
+Tone: Confident, direct. Blend terminology (ramus, canthal tilt, FWHR) with natural rhythm. Motivating not soft. No filler. No disclaimers. No celebrity names anywhere in the response. Rating: be honest, 5 is average, most people 4-6. A 7+ is notably above average. 8+ is rare. Be specific to THIS face.`;
 
 app.post("/api/analyze", async (req, res) => {
   const apiKey = process.env.ANTHROPIC_API_KEY;
