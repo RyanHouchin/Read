@@ -33,15 +33,19 @@ input[type="file"] { display: none; }
 .analysis-wrap img { width: 100%; display: block; border-radius: 6px; }
 .analysis-wrap canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
 .scan-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; overflow: hidden; border-radius: 6px; }
-.scan-line { position: absolute; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent 0%, #00ffaa 20%, #00ffaa 80%, transparent 100%); box-shadow: 0 0 15px #00ffaa, 0 0 30px rgba(0,255,170,0.3), 0 -8px 20px rgba(0,255,170,0.1), 0 8px 20px rgba(0,255,170,0.1); z-index: 10; animation: scanDown 3s ease-in-out forwards; }
-@keyframes scanDown { 0% { top: -2px; opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
-.scan-grid { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(rgba(0,255,170,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,170,0.02) 1px, transparent 1px); background-size: 24px 24px; opacity: 0; animation: fadeIn 1.5s 0.5s ease-in forwards; }
+.scan-pulse { position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; background: radial-gradient(circle, rgba(0,255,170,0.15) 0%, rgba(0,255,170,0.05) 40%, transparent 70%); transform: translate(-50%, -50%); animation: pulseExpand 2.5s ease-out infinite; }
+.scan-pulse:nth-child(2) { animation-delay: 0.8s; }
+.scan-pulse:nth-child(3) { animation-delay: 1.6s; }
+@keyframes pulseExpand { 0% { width: 0; height: 0; opacity: 1; } 100% { width: 200%; height: 200%; opacity: 0; } }
+.scan-veil { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, rgba(0,255,170,0.04) 0%, transparent 30%, transparent 70%, rgba(0,255,170,0.04) 100%); animation: veilShimmer 3s ease-in-out infinite; }
+@keyframes veilShimmer { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
 .scan-corners { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
-.scan-corners::before, .scan-corners::after { content: ''; position: absolute; width: 30px; height: 30px; border-color: rgba(0,255,170,0.4); border-style: solid; }
-.scan-corners::before { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
-.scan-corners::after { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
-.scan-label { position: absolute; bottom: 12px; left: 12px; font-family: 'DM Mono', monospace; font-size: 10px; color: rgba(0,255,170,0.6); letter-spacing: 2px; animation: labelPulse 1.5s ease-in-out infinite; }
-@keyframes labelPulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+.scan-corners::before, .scan-corners::after { content: ''; position: absolute; width: 40px; height: 40px; border-color: rgba(0,255,170,0.5); border-style: solid; }
+.scan-corners::before { top: 8px; left: 8px; border-width: 2px 0 0 2px; animation: cornerPulse 2s ease-in-out infinite; }
+.scan-corners::after { bottom: 8px; right: 8px; border-width: 0 2px 2px 0; animation: cornerPulse 2s ease-in-out infinite 1s; }
+@keyframes cornerPulse { 0%,100% { border-color: rgba(0,255,170,0.3); } 50% { border-color: rgba(0,255,170,0.7); } }
+.scan-label { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); font-family: 'DM Mono', monospace; font-size: 10px; color: rgba(0,255,170,0.7); letter-spacing: 3px; text-align: center; animation: labelFade 1.5s ease-in-out infinite; }
+@keyframes labelFade { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
 @keyframes fadeIn { to { opacity: 1; } }
 .analysis-status { margin-top: 20px; font-family: 'DM Mono', monospace; font-size: 12px; color: #666; letter-spacing: 1px; }
 .analysis-bar { width: 300px; height: 2px; background: #1a1a1a; margin-top: 12px; border-radius: 1px; overflow: hidden; }
@@ -475,8 +479,10 @@ function getAnnotatedImage(img, canvas) {
 function showScanEffect() {
   const overlay = document.getElementById('scan-overlay');
   overlay.innerHTML = `
-    <div class="scan-line"></div>
-    <div class="scan-grid"></div>
+    <div class="scan-pulse"></div>
+    <div class="scan-pulse"></div>
+    <div class="scan-pulse"></div>
+    <div class="scan-veil"></div>
     <div class="scan-corners"></div>
     <div class="scan-label" id="scan-phase">DETECTING FACE</div>
   `;
@@ -585,15 +591,11 @@ async function analyze(file) {
   bar.style.width = '95%';
   status.textContent = 'Building report...';
 
-  // Compute final score WITH Claude's structural adjustment
-  const structAdj = clamp(claudeData.structural_adjustment || 0, -2.5, 2.5);
-  const adjustedStructural = clamp(metrics.structural + structAdj, 1, 10);
+  // Final score — Claude's direct assessment
+  const finalScore = clamp(claudeData.overall_score || 5, 1, 10);
 
   const pres = claudeData.presentation || {};
   const presAvg = ((pres.skin_clarity?.score||5)+(pres.coloring_contrast?.score||5)+(pres.hair?.score||5)+(pres.expression_quality?.score||5)+(pres.grooming?.score||5)+(pres.photo_quality?.score||5))/6;
-
-  const harmonyAdj = clamp(claudeData.harmony?.adjustment || 0, -1, 1);
-  const finalScore = clamp(adjustedStructural * 0.50 + presAvg * 0.35 + metrics.dimorphism.score * 0.15 + harmonyAdj, 1, 10);
 
   const todayBumps = (claudeData.today_moves || []).reduce((s, m) => s + (m.bump || 0), 0);
   const regimenBumps = (claudeData.regimen_moves || []).reduce((s, m) => s + (m.bump || 0), 0);
@@ -601,7 +603,7 @@ async function analyze(file) {
   const regimenCeiling = clamp(+(todayCeiling + regimenBumps).toFixed(1), todayCeiling, 10);
 
   bar.style.width = '100%';
-  setTimeout(() => renderReport(metrics, physiognomy, claudeData, finalScore, todayCeiling, regimenCeiling, presAvg, adjustedStructural, annotatedImgUrl), 500);
+  setTimeout(() => renderReport(metrics, physiognomy, claudeData, finalScore, todayCeiling, regimenCeiling, presAvg, annotatedImgUrl), 500);
 }
 
 // ===== SCORE ANIMATION =====
@@ -616,7 +618,7 @@ function animateScore(el, target) {
 }
 
 // ===== RENDER REPORT =====
-function renderReport(m, phys, cd, finalScore, todayCeil, regimenCeil, presAvg, adjStructural, annotatedImgUrl) {
+function renderReport(m, phys, cd, finalScore, todayCeil, regimenCeil, presAvg, annotatedImgUrl) {
   showScreen('report-screen');
   const r = document.getElementById('report');
   let sn = 0;
@@ -633,14 +635,14 @@ function renderReport(m, phys, cd, finalScore, todayCeil, regimenCeil, presAvg, 
     <div class="hero-impression">${esc(cd.first_impression || '')}</div>
   `);
 
-  // 02 — OVERALL SCORE
+  // 02 — OVERALL SCORE (clean — no sloppy context block)
   html += sec('Overall Score', `
     <div class="big-score" id="score-display">0.0</div><span class="big-score-sub">/ 10</span>
     <div style="margin-top:20px">
       <div class="score-layer">
-        <span class="score-layer-label">Structural</span>
-        <div class="score-layer-bar"><div class="score-layer-fill" style="width:${adjStructural*10}%;background:${scoreColor(adjStructural)}"></div></div>
-        <span class="score-layer-val">${adjStructural.toFixed(1)}</span>
+        <span class="score-layer-label">Structure</span>
+        <div class="score-layer-bar"><div class="score-layer-fill" style="width:${m.structural*10}%;background:${scoreColor(m.structural)}"></div></div>
+        <span class="score-layer-val">${m.structural.toFixed(1)}</span>
       </div>
       <div class="score-layer">
         <span class="score-layer-label">Presentation</span>
@@ -658,13 +660,7 @@ function renderReport(m, phys, cd, finalScore, todayCeil, regimenCeil, presAvg, 
         <span class="score-layer-val">${(cd.harmony?.adjustment||0)>0?'+':''}${(cd.harmony?.adjustment||0).toFixed(1)}</span>
       </div>
     </div>
-    <div class="score-context">
-      <strong>Structural</strong> — bone structure, proportions, and symmetry from landmark analysis${cd.structural_adjustment_note ? ` (${esc(cd.structural_adjustment_note)})` : ''}<br>
-      <strong>Presentation</strong> — grooming, skin, hair, expression, and photo quality<br>
-      <strong>Dimorphism</strong> — strength of ${m.gender === 'male' ? 'masculine' : 'feminine'} feature markers<br>
-      <strong>Harmony</strong> — how well features synergize beyond individual measurements
-    </div>
-    ${cd.harmony?.note ? `<div class="score-context" style="margin-top:8px;font-style:italic">${esc(cd.harmony.note)}</div>` : ''}
+    ${cd.overall_note ? `<div style="font-size:13px;color:#555;margin-top:16px;font-style:italic">${esc(cd.overall_note)}</div>` : ''}
   `);
 
   // 03 — PROJECTION
