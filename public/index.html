@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Read</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Instrument+Serif&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -55,46 +55,25 @@
   }
   .analyze-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-  /* Loading / Scan Screen */
-  .scan-screen {
-    width: 100%; display: flex; flex-direction: column; align-items: center; gap: 20px;
-  }
+  /* Scan Screen */
+  .scan-screen { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 20px; }
   .scan-container {
-    width: 100%; position: relative; border-radius: 14px; overflow: hidden;
-    background: #0a0a0a;
+    width: 100%; position: relative; border-radius: 14px; overflow: hidden; background: #0a0a0a;
   }
   .scan-container img {
-    width: 100%; max-height: 500px; object-fit: contain; display: block;
-    background: #0a0a0a;
+    width: 100%; max-height: 500px; object-fit: contain; display: block; background: #0a0a0a;
   }
-  .scan-canvas {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none;
-  }
-  .scan-text {
-    display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%;
-  }
-  .scan-text h2 {
-    font-family: 'Instrument Serif', serif; font-size: 22px; color: #ddd; font-weight: 400;
-  }
-  .progress-wrap {
-    width: 100%; max-width: 280px; display: flex; flex-direction: column; align-items: center; gap: 8px;
-  }
-  .progress-track {
-    width: 100%; height: 2px; background: #161616; border-radius: 1px; overflow: hidden;
-  }
-  .progress-fill {
-    width: 0%; height: 100%; background: #555; border-radius: 1px;
-    transition: width 0.3s ease-out;
-  }
-  .progress-label {
-    font-size: 10px; color: #282828; font-variant-numeric: tabular-nums; letter-spacing: 0.06em;
-  }
+  .scan-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+  .scan-text { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
+  .scan-text h2 { font-family: 'Instrument Serif', serif; font-size: 22px; color: #ddd; font-weight: 400; }
+  .scan-phase { font-size: 10px; color: #333; letter-spacing: 0.1em; text-transform: uppercase; min-height: 14px; }
+  .progress-wrap { width: 100%; max-width: 280px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .progress-track { width: 100%; height: 2px; background: #161616; border-radius: 1px; overflow: hidden; }
+  .progress-fill { width: 0%; height: 100%; background: #555; border-radius: 1px; transition: width 0.3s ease-out; }
+  .progress-label { font-size: 10px; color: #282828; font-variant-numeric: tabular-nums; letter-spacing: 0.06em; }
 
   /* Error */
-  .error-box {
-    width: 100%; padding: 16px 18px; background: #140c0c; border: 1px solid #2a1515; border-radius: 10px;
-  }
+  .error-box { width: 100%; padding: 16px 18px; background: #140c0c; border: 1px solid #2a1515; border-radius: 10px; }
   .error-box p { font-size: 12px; color: #cc6666; line-height: 1.6; }
   .error-box button {
     margin-top: 12px; padding: 8px 16px; background: transparent; color: #666;
@@ -108,12 +87,9 @@
 
   /* Hero */
   .hero { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; }
-  .hero-avatar {
-    width: 80px; height: 80px; border-radius: 50%; overflow: hidden;
-    border: 2px solid #1a1a1a; box-shadow: 0 0 60px rgba(255,255,255,0.02);
-  }
+  .hero-avatar { width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 2px solid #1a1a1a; }
   .hero-avatar img { width: 100%; height: 100%; object-fit: cover; }
-  .hero-archetype { font-size: 10px; color: #353535; letter-spacing: 0.28em; text-transform: uppercase; font-weight: 400; }
+  .hero-archetype { font-size: 10px; color: #353535; letter-spacing: 0.28em; text-transform: uppercase; }
   .hero-opening { font-family: 'Instrument Serif', serif; font-size: 22px; color: #cdcdcd; line-height: 1.55; max-width: 480px; font-weight: 400; }
   .hero-fi-label { font-size: 9px; color: #222; letter-spacing: 0.14em; text-transform: uppercase; }
   .hero-fi { font-size: 13px; color: #505050; font-style: italic; font-weight: 300; }
@@ -127,25 +103,47 @@
   /* Rating */
   .rating-wrap { display: flex; align-items: center; gap: 32px; flex-wrap: wrap; justify-content: center; }
   .ring-container { position: relative; }
-  .ring-value {
-    position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  }
+  .ring-value { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
   .ring-num { font-family: 'Instrument Serif', serif; font-size: 56px; color: #f0f0f0; line-height: 1; letter-spacing: -0.04em; }
   .ring-label { font-size: 10px; color: #333; font-weight: 300; margin-top: 6px; letter-spacing: 0.12em; text-transform: uppercase; }
   .rating-detail { flex: 1; min-width: 180px; display: flex; flex-direction: column; gap: 8px; }
   .rating-row { display: flex; justify-content: space-between; align-items: baseline; }
   .rating-key { font-size: 11px; color: #303030; text-transform: uppercase; letter-spacing: 0.08em; }
   .rating-val { font-family: 'Instrument Serif', serif; font-size: 24px; }
-  .rating-context { font-size: 12px; line-height: 1.7; font-weight: 300; }
-  .scale-note {
-    font-size: 10px; color: #282828; line-height: 1.6; margin-top: 8px; padding-top: 8px;
-    border-top: 1px solid #111; letter-spacing: 0.01em;
+  .rating-context { font-size: 12px; line-height: 1.7; font-weight: 300; color: #505050; }
+  .scale-note { font-size: 10px; color: #282828; line-height: 1.6; margin-top: 8px; padding-top: 8px; border-top: 1px solid #111; }
+
+  /* Metrics grid */
+  .metrics-grid { display: flex; flex-direction: column; gap: 0; }
+  .metric-row {
+    display: flex; align-items: baseline; padding: 14px 0;
+    border-bottom: 1px solid #0f0f0f;
   }
+  .metric-row:last-child { border-bottom: none; }
+  .metric-name {
+    width: 120px; flex-shrink: 0; font-size: 10px; color: #404040;
+    text-transform: uppercase; letter-spacing: 0.1em; font-weight: 400;
+  }
+  .metric-value {
+    width: 72px; flex-shrink: 0; font-family: 'DM Mono', monospace;
+    font-size: 16px; color: #b0b0b0; font-weight: 400;
+  }
+  .metric-note { flex: 1; font-size: 11px; color: #3a3a3a; line-height: 1.6; font-weight: 300; }
+
+  /* Best angle */
+  .angle-card {
+    border: 1px solid #161616; border-radius: 12px; padding: 18px 20px; background: #0a0a0a;
+    display: flex; align-items: flex-start; gap: 16px;
+  }
+  .angle-icon {
+    width: 36px; height: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  }
+  .angle-body { flex: 1; }
+  .angle-body h4 { font-size: 13px; color: #aaa; font-weight: 500; margin-bottom: 4px; }
+  .angle-body p { font-size: 12px; color: #505050; line-height: 1.7; font-weight: 300; }
 
   /* Cards */
-  .card {
-    border: 1px solid #161616; border-radius: 12px; padding: 18px 20px; background: #0a0a0a;
-  }
+  .card { border: 1px solid #161616; border-radius: 12px; padding: 18px 20px; background: #0a0a0a; }
   .card.leak { border-color: #1a1212; background: #0a0909; }
   .card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
   .card h4 { font-size: 13px; color: #aaa; font-weight: 500; }
@@ -204,7 +202,7 @@
     <button class="analyze-btn hidden" id="analyze-btn" onclick="analyze()">Analyze</button>
   </div>
 
-  <!-- SCAN / LOADING SCREEN -->
+  <!-- SCAN SCREEN -->
   <div id="scan-screen" class="scan-screen hidden">
     <div class="scan-container" id="scan-container">
       <img id="scan-img" src="" alt="">
@@ -212,6 +210,7 @@
     </div>
     <div class="scan-text">
       <h2>Reading the architecture</h2>
+      <span class="scan-phase" id="scan-phase"></span>
       <div class="progress-wrap">
         <div class="progress-track">
           <div class="progress-fill" id="progress-fill"></div>
@@ -237,8 +236,8 @@ let compressedBase64 = null;
 let previewURL = null;
 let scanAnimationId = null;
 let progressInterval = null;
+let phaseInterval = null;
 
-// File selection
 document.getElementById('file-input').addEventListener('change', function(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -249,10 +248,8 @@ document.getElementById('file-input').addEventListener('change', function(e) {
 function compressImage(file) {
   compressedBase64 = null;
   hideError();
-
   previewURL = URL.createObjectURL(file);
-  const previewImg = document.getElementById('preview-img');
-  previewImg.src = previewURL;
+  document.getElementById('preview-img').src = previewURL;
   document.getElementById('drop-hint').classList.add('hidden');
   document.getElementById('preview-wrap').classList.remove('hidden');
   document.getElementById('drop-zone').classList.add('has-img');
@@ -264,175 +261,283 @@ function compressImage(file) {
     img.onload = function() {
       try {
         const canvas = document.createElement('canvas');
-        let w = img.naturalWidth;
-        let h = img.naturalHeight;
+        let w = img.naturalWidth, h = img.naturalHeight;
         const MAX = 768;
         if (w > MAX || h > MAX) {
           if (w >= h) { h = Math.round(h * MAX / w); w = MAX; }
           else { w = Math.round(w * MAX / h); h = MAX; }
         }
-        canvas.width = w;
-        canvas.height = h;
+        canvas.width = w; canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        const dataURL = canvas.toDataURL('image/jpeg', 0.6);
-        compressedBase64 = dataURL.split(',')[1];
+        compressedBase64 = canvas.toDataURL('image/jpeg', 0.6).split(',')[1];
         document.getElementById('analyze-btn').classList.remove('hidden');
         document.getElementById('analyze-btn').disabled = false;
-      } catch (err) {
-        showError('Could not process this image: ' + err.message);
-      }
+      } catch (err) { showError('Could not process: ' + err.message); }
     };
-    img.onerror = function() {
-      showError('Could not decode this image. Try a JPEG or PNG file.');
-    };
+    img.onerror = () => showError('Could not decode image.');
     img.src = reader.result;
   };
-  reader.onerror = function() {
-    showError('Could not read this file.');
-  };
+  reader.onerror = () => showError('Could not read file.');
   reader.readAsDataURL(file);
 }
 
-// ============ FACE SCAN ANIMATION ============
+// ============ BIOMETRIC SCAN ANIMATION ============
 
 function startScanAnimation() {
   const canvas = document.getElementById('scan-canvas');
   const container = document.getElementById('scan-container');
-  const img = document.getElementById('scan-img');
   const ctx = canvas.getContext('2d');
 
-  // Wait for image to load to get dimensions
   function initCanvas() {
     const rect = container.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
+    const W = canvas.width = rect.width;
+    const H = canvas.height = rect.height;
 
-    // Generate points concentrated in center (face area)
-    const points = [];
-    const numPoints = 100;
-    const cx = canvas.width / 2;
-    const cy = canvas.height * 0.4; // faces are usually upper-center
-    const spreadX = canvas.width * 0.4;
-    const spreadY = canvas.height * 0.4;
+    // Face center estimate — center-ish, slightly above middle
+    const cx = W * 0.5;
+    const cy = H * 0.42;
+    const faceW = Math.min(W, H) * 0.38;
+    const faceH = faceW * 1.35;
 
-    for (let i = 0; i < numPoints; i++) {
-      // Gaussian-ish distribution centered on face area
-      const angle = Math.random() * Math.PI * 2;
-      const dist = Math.random() * 0.8 + 0.2;
-      const rx = (Math.random() - 0.5) * 2;
-      const ry = (Math.random() - 0.5) * 2;
-      // Mix of concentrated center + wider spread
-      const isCentered = Math.random() < 0.65;
-      const x = isCentered
-        ? cx + rx * spreadX * dist * 0.6
-        : cx + rx * spreadX * 1.2;
-      const y = isCentered
-        ? cy + ry * spreadY * dist * 0.6
-        : cy + ry * spreadY * 1.4;
+    // Define anatomical landmarks relative to face center
+    const landmarks = {
+      // Forehead
+      foreheadCenter: { x: cx, y: cy - faceH * 0.42 },
+      // Eyes
+      leftEyeInner:  { x: cx - faceW * 0.12, y: cy - faceH * 0.08 },
+      leftEyeOuter:  { x: cx - faceW * 0.3,  y: cy - faceH * 0.1  },
+      leftEyeCenter: { x: cx - faceW * 0.21, y: cy - faceH * 0.09 },
+      rightEyeInner: { x: cx + faceW * 0.12, y: cy - faceH * 0.08 },
+      rightEyeOuter: { x: cx + faceW * 0.3,  y: cy - faceH * 0.1  },
+      rightEyeCenter:{ x: cx + faceW * 0.21, y: cy - faceH * 0.09 },
+      // Eyebrows
+      leftBrowPeak:  { x: cx - faceW * 0.24, y: cy - faceH * 0.18 },
+      rightBrowPeak: { x: cx + faceW * 0.24, y: cy - faceH * 0.18 },
+      // Nose
+      noseBridge:    { x: cx, y: cy - faceH * 0.04 },
+      noseTip:       { x: cx, y: cy + faceH * 0.1 },
+      leftNostril:   { x: cx - faceW * 0.08, y: cy + faceH * 0.13 },
+      rightNostril:  { x: cx + faceW * 0.08, y: cy + faceH * 0.13 },
+      // Mouth
+      leftMouth:     { x: cx - faceW * 0.16, y: cy + faceH * 0.24 },
+      rightMouth:    { x: cx + faceW * 0.16, y: cy + faceH * 0.24 },
+      upperLip:      { x: cx, y: cy + faceH * 0.21 },
+      lowerLip:      { x: cx, y: cy + faceH * 0.28 },
+      // Jaw & chin
+      chin:          { x: cx, y: cy + faceH * 0.44 },
+      leftJaw:       { x: cx - faceW * 0.38, y: cy + faceH * 0.18 },
+      rightJaw:      { x: cx + faceW * 0.38, y: cy + faceH * 0.18 },
+      leftCheek:     { x: cx - faceW * 0.36, y: cy - faceH * 0.02 },
+      rightCheek:    { x: cx + faceW * 0.36, y: cy - faceH * 0.02 },
+      // Ears
+      leftEar:       { x: cx - faceW * 0.46, y: cy - faceH * 0.04 },
+      rightEar:      { x: cx + faceW * 0.46, y: cy - faceH * 0.04 },
+    };
 
-      points.push({
-        x: Math.max(8, Math.min(canvas.width - 8, x)),
-        y: Math.max(8, Math.min(canvas.height - 8, y)),
-        size: 1.2 + Math.random() * 1.8,
-        delay: i * 30 + Math.random() * 400, // staggered appearance
-        opacity: 0,
-        pulse: Math.random() * Math.PI * 2,
-        pulseSpeed: 0.02 + Math.random() * 0.03
-      });
-    }
+    // Measurement connections grouped by phase
+    const phases = [
+      {
+        name: 'Mapping landmarks',
+        points: ['foreheadCenter','leftEyeCenter','rightEyeCenter','noseBridge','noseTip','upperLip','chin'],
+        lines: [
+          ['foreheadCenter','noseBridge'],['noseBridge','noseTip'],['noseTip','upperLip'],['upperLip','chin']
+        ],
+        labels: []
+      },
+      {
+        name: 'Measuring symmetry',
+        points: ['leftEyeInner','leftEyeOuter','rightEyeInner','rightEyeOuter','leftBrowPeak','rightBrowPeak'],
+        lines: [
+          ['leftEyeOuter','leftEyeInner'],['rightEyeInner','rightEyeOuter'],
+          ['leftBrowPeak','leftEyeCenter'],['rightBrowPeak','rightEyeCenter'],
+          ['leftEyeCenter','rightEyeCenter']
+        ],
+        labels: [{ at: 'rightEyeOuter', text: 'CANTHAL TILT', ox: 12, oy: -8 }]
+      },
+      {
+        name: 'Calculating FWHR',
+        points: ['leftCheek','rightCheek','leftNostril','rightNostril','leftEar','rightEar'],
+        lines: [
+          ['leftCheek','rightCheek'],
+          ['leftEar','leftCheek'],['rightEar','rightCheek'],
+          ['leftNostril','rightNostril']
+        ],
+        labels: [
+          { at: 'rightCheek', text: 'FWHR', ox: 10, oy: 0 },
+        ]
+      },
+      {
+        name: 'Analyzing proportions',
+        points: ['leftMouth','rightMouth','lowerLip','leftJaw','rightJaw'],
+        lines: [
+          ['leftMouth','rightMouth'],['upperLip','lowerLip'],
+          ['leftJaw','chin'],['rightJaw','chin'],
+          ['leftJaw','leftCheek'],['rightJaw','rightCheek']
+        ],
+        labels: [
+          { at: 'rightJaw', text: 'JAWLINE', ox: 10, oy: 4 },
+        ]
+      }
+    ];
 
-    // Sort by delay for progressive reveal
-    points.sort((a, b) => a.delay - b.delay);
+    // Flatten all for rendering
+    const allPointKeys = new Set();
+    const allLines = [];
+    const allLabels = [];
+    let phaseTimings = []; // [startMs, endMs]
 
-    const connectionDist = Math.min(canvas.width, canvas.height) * 0.15;
-    let scanLineY = -20;
+    const phaseDuration = 2800;
+    const phaseGap = 200;
+    phases.forEach((phase, pi) => {
+      const start = pi * (phaseDuration + phaseGap);
+      const end = start + phaseDuration;
+      phaseTimings.push({ start, end, phase });
+    });
+
+    const totalDuration = phases.length * (phaseDuration + phaseGap);
+
     const startTime = Date.now();
+    let currentPhaseIdx = -1;
 
     function draw() {
       const elapsed = Date.now() - startTime;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const loopElapsed = elapsed % (totalDuration + 2000); // loop with pause
+      ctx.clearRect(0, 0, W, H);
 
-      // Subtle dark overlay for contrast
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Dark overlay
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+      ctx.fillRect(0, 0, W, H);
 
-      // Scan line sweep
-      scanLineY = ((elapsed * 0.06) % (canvas.height + 80)) - 40;
-      const grad = ctx.createLinearGradient(0, scanLineY - 30, 0, scanLineY + 30);
-      grad.addColorStop(0, 'rgba(255, 255, 255, 0)');
-      grad.addColorStop(0.5, 'rgba(255, 255, 255, 0.04)');
-      grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, scanLineY - 30, canvas.width, 60);
-
-      // Update point opacities
-      points.forEach(p => {
-        if (elapsed > p.delay) {
-          p.opacity = Math.min(1, p.opacity + 0.04);
-        }
-        p.pulse += p.pulseSpeed;
-      });
-
-      // Draw connections first (behind points)
-      const visiblePoints = points.filter(p => p.opacity > 0.1);
-      ctx.lineWidth = 0.5;
-      for (let i = 0; i < visiblePoints.length; i++) {
-        for (let j = i + 1; j < visiblePoints.length; j++) {
-          const a = visiblePoints[i];
-          const b = visiblePoints[j];
-          const dx = a.x - b.x;
-          const dy = a.y - b.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < connectionDist) {
-            const alpha = (1 - dist / connectionDist) * 0.15 * Math.min(a.opacity, b.opacity);
-            ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
-            ctx.beginPath();
-            ctx.moveTo(a.x, a.y);
-            ctx.lineTo(b.x, b.y);
-            ctx.stroke();
-          }
-        }
-      }
-
-      // Draw points
-      visiblePoints.forEach(p => {
-        const pulseSize = p.size + Math.sin(p.pulse) * 0.5;
-        const alpha = p.opacity * (0.6 + Math.sin(p.pulse) * 0.2);
-
-        // Glow
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, pulseSize * 3, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.06})`;
-        ctx.fill();
-
-        // Point
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, pulseSize, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.7})`;
-        ctx.fill();
-      });
-
-      // Corner brackets (subtle framing)
-      const bLen = 24;
-      const bPad = 16;
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      // Symmetry midline (always visible, subtle)
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
       ctx.lineWidth = 1;
-      // Top-left
+      ctx.setLineDash([4, 6]);
       ctx.beginPath();
-      ctx.moveTo(bPad, bPad + bLen); ctx.lineTo(bPad, bPad); ctx.lineTo(bPad + bLen, bPad);
+      ctx.moveTo(cx, cy - faceH * 0.52);
+      ctx.lineTo(cx, cy + faceH * 0.52);
       ctx.stroke();
-      // Top-right
-      ctx.beginPath();
-      ctx.moveTo(canvas.width - bPad - bLen, bPad); ctx.lineTo(canvas.width - bPad, bPad); ctx.lineTo(canvas.width - bPad, bPad + bLen);
-      ctx.stroke();
-      // Bottom-left
-      ctx.beginPath();
-      ctx.moveTo(bPad, canvas.height - bPad - bLen); ctx.lineTo(bPad, canvas.height - bPad); ctx.lineTo(bPad + bLen, canvas.height - bPad);
-      ctx.stroke();
-      // Bottom-right
-      ctx.beginPath();
-      ctx.moveTo(canvas.width - bPad - bLen, canvas.height - bPad); ctx.lineTo(canvas.width - bPad, canvas.height - bPad); ctx.lineTo(canvas.width - bPad, canvas.height - bPad - bLen);
-      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Facial thirds guides (horizontal, subtle)
+      const thirdsY = [cy - faceH * 0.18, cy + faceH * 0.1, cy + faceH * 0.24];
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+      ctx.lineWidth = 1;
+      thirdsY.forEach(y => {
+        ctx.beginPath();
+        ctx.moveTo(cx - faceW * 0.42, y);
+        ctx.lineTo(cx + faceW * 0.42, y);
+        ctx.stroke();
+      });
+
+      // Corner brackets
+      const bLen = 20, bPad = 14;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(bPad, bPad + bLen); ctx.lineTo(bPad, bPad); ctx.lineTo(bPad + bLen, bPad); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(W-bPad-bLen, bPad); ctx.lineTo(W-bPad, bPad); ctx.lineTo(W-bPad, bPad+bLen); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(bPad, H-bPad-bLen); ctx.lineTo(bPad, H-bPad); ctx.lineTo(bPad+bLen, H-bPad); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(W-bPad-bLen, H-bPad); ctx.lineTo(W-bPad, H-bPad); ctx.lineTo(W-bPad, H-bPad-bLen); ctx.stroke();
+
+      // Determine which phases are active
+      let activePoints = new Set();
+      let activeLines = [];
+      let activeLabels = [];
+
+      phaseTimings.forEach((pt, idx) => {
+        const phaseProgress = Math.max(0, Math.min(1, (loopElapsed - pt.start) / phaseDuration));
+        if (phaseProgress <= 0) return;
+
+        const phase = pt.phase;
+        const pointProgress = Math.min(1, phaseProgress * 2.5); // points appear fast
+        const lineProgress = Math.max(0, Math.min(1, (phaseProgress - 0.15) * 1.8));
+        const labelProgress = Math.max(0, Math.min(1, (phaseProgress - 0.5) * 2.5));
+
+        // Points for this phase
+        const numPts = Math.floor(phase.points.length * pointProgress);
+        for (let i = 0; i < numPts; i++) {
+          activePoints.add(phase.points[i]);
+        }
+
+        // Lines for this phase
+        const numLines = Math.floor(phase.lines.length * lineProgress);
+        for (let i = 0; i < numLines; i++) {
+          activeLines.push({ from: phase.lines[i][0], to: phase.lines[i][1], alpha: Math.min(1, lineProgress) });
+        }
+
+        // Labels
+        phase.labels.forEach(lbl => {
+          if (labelProgress > 0) {
+            activeLabels.push({ ...lbl, alpha: labelProgress });
+          }
+        });
+
+        // Update phase text
+        if (phaseProgress > 0 && phaseProgress < 1) {
+          const phaseEl = document.getElementById('scan-phase');
+          if (phaseEl) phaseEl.textContent = phase.name;
+        }
+      });
+
+      // Draw measurement lines
+      activeLines.forEach(line => {
+        const from = landmarks[line.from];
+        const to = landmarks[line.to];
+        if (!from || !to) return;
+
+        ctx.strokeStyle = `rgba(255, 255, 255, ${0.12 * line.alpha})`;
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(from.x, from.y);
+        ctx.lineTo(to.x, to.y);
+        ctx.stroke();
+
+        // Tiny measurement tick marks at ends
+        const angle = Math.atan2(to.y - from.y, to.x - from.x);
+        const perpAngle = angle + Math.PI / 2;
+        const tickLen = 3;
+        ctx.strokeStyle = `rgba(255, 255, 255, ${0.15 * line.alpha})`;
+        [from, to].forEach(pt => {
+          ctx.beginPath();
+          ctx.moveTo(pt.x - Math.cos(perpAngle) * tickLen, pt.y - Math.sin(perpAngle) * tickLen);
+          ctx.lineTo(pt.x + Math.cos(perpAngle) * tickLen, pt.y + Math.sin(perpAngle) * tickLen);
+          ctx.stroke();
+        });
+      });
+
+      // Draw landmark points
+      activePoints.forEach(key => {
+        const pt = landmarks[key];
+        if (!pt) return;
+        const pulse = Math.sin(elapsed * 0.004 + pt.x * 0.01) * 0.3 + 0.7;
+
+        // Outer glow
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${0.04 * pulse})`;
+        ctx.fill();
+
+        // Ring
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 2.5, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(255, 255, 255, ${0.35 * pulse})`;
+        ctx.lineWidth = 0.6;
+        ctx.stroke();
+
+        // Center dot
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 1, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${0.6 * pulse})`;
+        ctx.fill();
+      });
+
+      // Draw labels
+      ctx.font = '9px "DM Mono", monospace';
+      activeLabels.forEach(lbl => {
+        const pt = landmarks[lbl.at];
+        if (!pt) return;
+        ctx.fillStyle = `rgba(255, 255, 255, ${0.3 * lbl.alpha})`;
+        ctx.fillText(lbl.text, pt.x + (lbl.ox || 0), pt.y + (lbl.oy || 0));
+      });
 
       scanAnimationId = requestAnimationFrame(draw);
     }
@@ -440,39 +545,28 @@ function startScanAnimation() {
     draw();
   }
 
-  // Small delay to let image render
+  const img = document.getElementById('scan-img');
   if (img.complete && img.naturalHeight > 0) {
-    setTimeout(initCanvas, 50);
+    setTimeout(initCanvas, 80);
   } else {
-    img.onload = () => setTimeout(initCanvas, 50);
+    img.onload = () => setTimeout(initCanvas, 80);
   }
 }
 
 function stopScanAnimation() {
-  if (scanAnimationId) {
-    cancelAnimationFrame(scanAnimationId);
-    scanAnimationId = null;
-  }
-  if (progressInterval) {
-    clearInterval(progressInterval);
-    progressInterval = null;
-  }
+  if (scanAnimationId) { cancelAnimationFrame(scanAnimationId); scanAnimationId = null; }
+  if (progressInterval) { clearInterval(progressInterval); progressInterval = null; }
+  if (phaseInterval) { clearInterval(phaseInterval); phaseInterval = null; }
 }
 
 function startProgress() {
   let progress = 0;
   const fill = document.getElementById('progress-fill');
   const label = document.getElementById('progress-label');
-
   progressInterval = setInterval(() => {
-    // Ease toward 88% over ~25 seconds, then slow crawl
-    if (progress < 60) {
-      progress += 1.8 + Math.random() * 1.2;
-    } else if (progress < 85) {
-      progress += 0.4 + Math.random() * 0.6;
-    } else if (progress < 92) {
-      progress += 0.1 + Math.random() * 0.2;
-    }
+    if (progress < 60) progress += 1.8 + Math.random() * 1.2;
+    else if (progress < 85) progress += 0.4 + Math.random() * 0.6;
+    else if (progress < 92) progress += 0.1 + Math.random() * 0.2;
     progress = Math.min(progress, 92);
     fill.style.width = progress + '%';
     label.textContent = Math.round(progress) + '%';
@@ -492,19 +586,14 @@ function finishProgress() {
 async function analyze() {
   if (!compressedBase64) return;
 
-  // Switch to scan screen
   document.getElementById('upload-screen').classList.add('hidden');
   document.getElementById('scan-screen').classList.remove('hidden');
   hideError();
-
-  // Set the scan image
   document.getElementById('scan-img').src = previewURL;
-
-  // Reset progress
   document.getElementById('progress-fill').style.width = '0%';
   document.getElementById('progress-label').textContent = '0%';
+  document.getElementById('scan-phase').textContent = '';
 
-  // Start animations
   startScanAnimation();
   startProgress();
 
@@ -512,30 +601,18 @@ async function analyze() {
     const resp = await fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        image: compressedBase64,
-        media_type: 'image/jpeg'
-      })
+      body: JSON.stringify({ image: compressedBase64, media_type: 'image/jpeg' })
     });
-
     const data = await resp.json();
+    if (!resp.ok || data.error) throw new Error(data.error || 'Status ' + resp.status);
+    if (!data.opening || data.rating === undefined) throw new Error('Incomplete response.');
 
-    if (!resp.ok || data.error) {
-      throw new Error(data.error || 'Server returned status ' + resp.status);
-    }
-
-    if (!data.opening || data.rating === undefined) {
-      throw new Error('Incomplete response. Try again.');
-    }
-
-    // Complete progress, brief pause, then show report
     finishProgress();
-    await new Promise(r => setTimeout(r, 600));
+    document.getElementById('scan-phase').textContent = 'Analysis complete';
+    await new Promise(r => setTimeout(r, 700));
     stopScanAnimation();
-
     document.getElementById('scan-screen').classList.add('hidden');
     renderReport(data);
-
   } catch (err) {
     stopScanAnimation();
     document.getElementById('scan-screen').classList.add('hidden');
@@ -548,46 +625,6 @@ async function analyze() {
 
 function renderReport(d) {
   const report = document.getElementById('report');
-
-  let featuresHTML = '';
-  (d.best_features || []).forEach(f => {
-    featuresHTML += `
-      <div class="card" style="margin-bottom:12px">
-        <div class="card-head"><div class="diamond"></div><h4>${esc(f.feature)}</h4></div>
-        <p>${esc(f.detail)}</p>
-      </div>`;
-  });
-
-  let leaksHTML = '';
-  (d.leaks || []).forEach(l => {
-    leaksHTML += `
-      <div class="card leak" style="margin-bottom:12px">
-        <div class="card-head">
-          <svg width="8" height="8" viewBox="0 0 8 8"><polygon points="4,7 0.5,1 7.5,1" fill="none" stroke="#3a2525" stroke-width="1"/></svg>
-          <h4>${esc(l.issue)}</h4>
-        </div>
-        <p style="padding-left:16px">${esc(l.detail)}</p>
-      </div>`;
-  });
-
-  let movesHTML = '';
-  (d.moves || []).forEach((m, i) => {
-    const pct = m.impact === 'high' ? '100%' : m.impact === 'medium' ? '66%' : '33%';
-    const col = m.impact === 'high' ? '#888' : '#333';
-    movesHTML += `
-      <div class="move" style="margin-bottom:22px">
-        <span class="move-num">${String(i+1).padStart(2,'0')}</span>
-        <div class="move-body">
-          <h4>${esc(m.action)}</h4>
-          <p>${esc(m.detail)}</p>
-          <div class="impact-bar">
-            <div class="impact-track"><div class="impact-fill" style="width:${pct};background:${col}"></div></div>
-            <span class="impact-label">${esc(m.impact)} impact</span>
-          </div>
-        </div>
-      </div>`;
-  });
-
   const rating = parseFloat(d.rating) || 0;
   const ceiling = parseFloat(d.ceiling) || 0;
   const ringSize = 180;
@@ -595,8 +632,50 @@ function renderReport(d) {
   const r = (ringSize - sw * 2) / 2;
   const c = 2 * Math.PI * r;
 
+  // Metrics
+  const m = d.metrics || {};
+  const sym = m.symmetry || {};
+  const fwhr = m.fwhr || {};
+  const ct = m.canthal_tilt || {};
+  const ft = m.facial_thirds || {};
+  const jl = m.jawline || {};
+
+  // Format values
+  const fwhrVal = fwhr.value ? parseFloat(fwhr.value).toFixed(2) : '—';
+  const ctVal = ct.direction && ct.degrees !== undefined
+    ? (ct.direction === 'positive' ? '+' : ct.direction === 'negative' ? '-' : '') + ct.degrees + '°'
+    : '—';
+  const ftVal = ft.balance ? ft.balance.charAt(0).toUpperCase() + ft.balance.slice(1) : '—';
+
+  // Features
+  let featuresHTML = '';
+  (d.best_features || []).forEach(f => {
+    featuresHTML += `<div class="card" style="margin-bottom:12px"><div class="card-head"><div class="diamond"></div><h4>${esc(f.feature)}</h4></div><p>${esc(f.detail)}</p></div>`;
+  });
+
+  // Leaks
+  let leaksHTML = '';
+  (d.leaks || []).forEach(l => {
+    leaksHTML += `<div class="card leak" style="margin-bottom:12px"><div class="card-head"><svg width="8" height="8" viewBox="0 0 8 8"><polygon points="4,7 0.5,1 7.5,1" fill="none" stroke="#3a2525" stroke-width="1"/></svg><h4>${esc(l.issue)}</h4></div><p style="padding-left:16px">${esc(l.detail)}</p></div>`;
+  });
+
+  // Moves
+  let movesHTML = '';
+  (d.moves || []).forEach((mv, i) => {
+    const pct = mv.impact === 'high' ? '100%' : mv.impact === 'medium' ? '66%' : '33%';
+    const col = mv.impact === 'high' ? '#888' : '#333';
+    movesHTML += `<div class="move" style="margin-bottom:22px"><span class="move-num">${String(i+1).padStart(2,'0')}</span><div class="move-body"><h4>${esc(mv.action)}</h4><p>${esc(mv.detail)}</p><div class="impact-bar"><div class="impact-track"><div class="impact-fill" style="width:${pct};background:${col}"></div></div><span class="impact-label">${esc(mv.impact)} impact</span></div></div></div>`;
+  });
+
+  // Best angle
+  const ba = d.best_angle || {};
+  const angleSide = (ba.side || 'straight-on').toLowerCase();
+  let angleArrow = '';
+  if (angleSide.includes('left')) angleArrow = '<path d="M20 12H4M4 12l6-6M4 12l6 6" stroke="#444" stroke-width="1.5" fill="none"/>';
+  else if (angleSide.includes('right')) angleArrow = '<path d="M4 12h16M20 12l-6-6M20 12l-6 6" stroke="#444" stroke-width="1.5" fill="none"/>';
+  else angleArrow = '<circle cx="12" cy="12" r="3" stroke="#444" stroke-width="1.5" fill="none"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="#333" stroke-width="1" fill="none"/>';
+
   report.innerHTML = `
-    <!-- Hero -->
     <div class="hero">
       ${previewURL ? `<div class="hero-avatar"><img src="${previewURL}" alt=""></div>` : ''}
       <div class="hero-archetype">${esc(d.archetype || '')}</div>
@@ -609,7 +688,6 @@ function renderReport(d) {
 
     <div class="hr"></div>
 
-    <!-- Rating -->
     <div>
       <div class="sec-head">
         <span class="sec-num">01</span>
@@ -640,19 +718,55 @@ function renderReport(d) {
             <span class="rating-val" style="color:#404040">${ceiling.toFixed(1)}</span>
           </div>
           <div style="height:1px;background:#151515;margin:6px 0"></div>
-          <p class="rating-context" style="color:#505050">${esc(d.rating_context || '')}</p>
-          <p class="rating-context" style="color:#505050">${esc(d.ceiling_context || '')}</p>
-          <p class="scale-note">Rated on structural harmony, symmetry, and facial architecture. 5 is average — most people fall between 4 and 6. A 7+ is notably above average. 8+ is rare.</p>
+          <p class="rating-context">${esc(d.rating_context || '')}</p>
+          <p class="rating-context">${esc(d.ceiling_context || '')}</p>
+          <p class="scale-note">5 is average — most people fall between 4 and 6. A 7+ is notably above average. 8+ is rare.</p>
         </div>
       </div>
     </div>
 
     <div class="hr"></div>
 
-    <!-- Personality -->
     <div>
       <div class="sec-head">
         <span class="sec-num">02</span>
+        <span class="sec-label">Structural Metrics</span>
+        <div class="sec-line"></div>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric-row">
+          <span class="metric-name">Symmetry</span>
+          <span class="metric-value">${sym.score != null ? parseFloat(sym.score).toFixed(1) : '—'}</span>
+          <span class="metric-note">${esc(sym.note || '')}</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-name">FWHR</span>
+          <span class="metric-value">${fwhrVal}</span>
+          <span class="metric-note">${esc(fwhr.note || '')}</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-name">Canthal Tilt</span>
+          <span class="metric-value">${ctVal}</span>
+          <span class="metric-note">${esc(ct.note || '')}</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-name">Thirds</span>
+          <span class="metric-value">${ftVal}</span>
+          <span class="metric-note">${esc(ft.note || '')}</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-name">Jawline</span>
+          <span class="metric-value">${jl.score != null ? parseFloat(jl.score).toFixed(1) : '—'}</span>
+          <span class="metric-note">${esc(jl.note || '')}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hr"></div>
+
+    <div>
+      <div class="sec-head">
+        <span class="sec-num">03</span>
         <span class="sec-label">Personality &amp; Intent</span>
         <div class="sec-line"></div>
       </div>
@@ -661,10 +775,9 @@ function renderReport(d) {
 
     <div class="hr"></div>
 
-    <!-- Shadow -->
     <div>
       <div class="sec-head">
-        <span class="sec-num">03</span>
+        <span class="sec-num">04</span>
         <span class="sec-label">The Shadow</span>
         <div class="sec-line"></div>
       </div>
@@ -673,10 +786,9 @@ function renderReport(d) {
 
     <div class="hr"></div>
 
-    <!-- Best Features -->
     <div>
       <div class="sec-head">
-        <span class="sec-num">04</span>
+        <span class="sec-num">05</span>
         <span class="sec-label">Strongest Architecture</span>
         <div class="sec-line"></div>
       </div>
@@ -685,10 +797,9 @@ function renderReport(d) {
 
     <div class="hr"></div>
 
-    <!-- Leaks -->
     <div>
       <div class="sec-head">
-        <span class="sec-num">05</span>
+        <span class="sec-num">06</span>
         <span class="sec-label">Structural Leaks</span>
         <div class="sec-line"></div>
       </div>
@@ -697,14 +808,32 @@ function renderReport(d) {
 
     <div class="hr"></div>
 
-    <!-- Moves -->
     <div>
       <div class="sec-head">
-        <span class="sec-num">06</span>
+        <span class="sec-num">07</span>
         <span class="sec-label">Highest-ROI Moves</span>
         <div class="sec-line"></div>
       </div>
       ${movesHTML}
+    </div>
+
+    <div class="hr"></div>
+
+    <div>
+      <div class="sec-head">
+        <span class="sec-num">08</span>
+        <span class="sec-label">Best Angle</span>
+        <div class="sec-line"></div>
+      </div>
+      <div class="angle-card">
+        <div class="angle-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">${angleArrow}</svg>
+        </div>
+        <div class="angle-body">
+          <h4>${esc(angleSide.charAt(0).toUpperCase() + angleSide.slice(1))}</h4>
+          <p>${esc(ba.note || '')}</p>
+        </div>
+      </div>
     </div>
 
     <div class="hr" style="margin-top:16px"></div>
@@ -745,37 +874,32 @@ function showError(msg) {
   document.getElementById('error-msg').textContent = msg;
   document.getElementById('error-box').classList.remove('hidden');
 }
-function hideError() {
-  document.getElementById('error-box').classList.add('hidden');
-}
+function hideError() { document.getElementById('error-box').classList.add('hidden'); }
 
 function resetAll() {
   compressedBase64 = null;
   if (previewURL) { URL.revokeObjectURL(previewURL); previewURL = null; }
   stopScanAnimation();
-
   document.getElementById('drop-hint').classList.remove('hidden');
   document.getElementById('preview-wrap').classList.add('hidden');
   document.getElementById('drop-zone').classList.remove('has-img');
   document.getElementById('drop-zone').onclick = function() { document.getElementById('file-input').click(); };
   document.getElementById('analyze-btn').classList.add('hidden');
   document.getElementById('file-input').value = '';
-
   document.getElementById('scan-screen').classList.add('hidden');
   document.getElementById('report').classList.add('hidden');
   document.getElementById('report').innerHTML = '';
   hideError();
   document.getElementById('upload-screen').classList.remove('hidden');
-
   const nb = document.querySelector('.new-read-btn');
   if (nb) nb.remove();
 }
 
 function esc(s) {
   if (!s) return '';
-  const d = document.createElement('div');
-  d.textContent = s;
-  return d.innerHTML;
+  const el = document.createElement('div');
+  el.textContent = s;
+  return el.innerHTML;
 }
 </script>
 </body>
