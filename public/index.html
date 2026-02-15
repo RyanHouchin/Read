@@ -202,20 +202,6 @@ function scoreColor(s) {
   return '#8a5a5a';
 }
 
-// Percentile (1-99) → Score (1.0-10.0)
-function _pctToScore(pct) {
-  pct = clamp(pct, 1, 99);
-  if (pct <= 5) return 1.0 + (pct / 5) * 0.5;
-  if (pct <= 15) return 1.5 + ((pct - 5) / 10) * 1.0;
-  if (pct <= 30) return 2.5 + ((pct - 15) / 15) * 1.5;
-  if (pct <= 50) return 4.0 + ((pct - 30) / 20) * 1.0;
-  if (pct <= 70) return 5.0 + ((pct - 50) / 20) * 1.5;
-  if (pct <= 85) return 6.5 + ((pct - 70) / 15) * 1.0;
-  if (pct <= 93) return 7.5 + ((pct - 85) / 8) * 1.0;
-  if (pct <= 97) return 8.5 + ((pct - 93) / 4) * 0.75;
-  return 9.25 + ((pct - 97) / 2) * 0.75;
-}
-
 // ===== METRIC BAR (all use 1-10 scale) =====
 function metricBarHTML(name, score, context, rawInfo) {
   // Map so 5 = 50% center
@@ -583,32 +569,64 @@ async function analyze(file) {
   bar.style.width = '95%';
   status.textContent = 'Building report...';
 
-  // === PERCENTILE TO SCORE MAPPING ===
-  // Maps Claude's percentile (1-99) to display score (1.0-10.0)
-  function pctToScore(pct) { return _pctToScore(pct); }
+  // === TIER TO SCORE MAPPING ===
+  // Each tier has a fixed score range. Placement (1-10) interpolates within it.
+  const TIER_RANGES = {
+    1: [1.5, 3.0],   // Well below average
+    2: [3.0, 4.0],   // Below average
+    3: [4.0, 4.8],   // Slightly below average
+    4: [4.8, 5.5],   // Average
+    5: [5.5, 7.0],   // Above average
+    6: [7.0, 8.5],   // Very attractive
+    7: [8.5, 10.0],  // Exceptionally attractive
+  };
 
-  // Final score from Claude's percentile
-  const rawPct = clamp(claudeData.attractiveness_percentile || 50, 1, 99);
-  const finalScore = +pctToScore(rawPct).toFixed(1);
+  function tierToScore(tier, placement) {
+    tier = clamp(tier, 1, 7);
+    placement = clamp(placement, 1, 10);
+    const [lo, hi] = TIER_RANGES[tier];
+    return +(lo + (hi - lo) * ((placement - 1) / 9)).toFixed(1);
+  }
 
-  // Presentation scores from percentiles
-  const pres = claudeData.presentation_percentiles || {};
+  // Final score from Claude's tier judgment
+  const tier = clamp(claudeData.tier || 4, 1, 7);
+  const placement = clamp(claudeData.tier_placement || 5, 1, 10);
+  const finalScore = tierToScore(tier, placement);
+
+  // Presentation scores from tiers
+  const pres = claudeData.presentation_tiers || {};
   const presScores = {};
   for (const [key, data] of Object.entries(pres)) {
-    presScores[key] = { score: +pctToScore(data?.percentile || 50).toFixed(1), note: data?.note || '' };
+    const t = clamp(data?.tier || 4, 1, 7);
+    const p = clamp(data?.placement || 5, 1, 10);
+    presScores[key] = { score: tierToScore(t, p), note: data?.note || '' };
   }
   const presAvg = Object.values(presScores).reduce((s, d) => s + d.score, 0) / Math.max(Object.keys(presScores).length, 1);
 
-  // Bumps — convert percentile bumps to score bumps
-  const todayBumpPct = (claudeData.today_moves || []).reduce((s, m) => s + (m.bump_percentile || 0), 0);
-  const regimenBumpPct = (claudeData.regimen_moves || []).reduce((s, m) => s + (m.bump_percentile || 0), 0);
-  const todayCeilPct = clamp(rawPct + todayBumpPct, rawPct, 99);
-  const regimenCeilPct = clamp(todayCeilPct + regimenBumpPct, todayCeilPct, 99);
-  const todayCeiling = +pctToScore(todayCeilPct).toFixed(1);
-  const regimenCeiling = +pctToScore(regimenCeilPct).toFixed(1);
+  // Bumps — apply tier+placement bumps
+  let bumpTier = tier, bumpPlace = placement;
+  (claudeData.today_moves || []).forEach(mv => {
+    bumpTier += (mv.bump_tiers || 0);
+    bumpPlace += (mv.bump_placement || 0);
+    while (bumpPlace > 10 && bumpTier < 7) { bumpPlace -= 10; bumpTier++; }
+    bumpTier = clamp(bumpTier, 1, 7);
+    bumpPlace = clamp(bumpPlace, 1, 10);
+  });
+  const todayCeiling = tierToScore(bumpTier, bumpPlace);
+
+  (claudeData.regimen_moves || []).forEach(mv => {
+    bumpTier += (mv.bump_tiers || 0);
+    bumpPlace += (mv.bump_placement || 0);
+    while (bumpPlace > 10 && bumpTier < 7) { bumpPlace -= 10; bumpTier++; }
+    bumpTier = clamp(bumpTier, 1, 7);
+    bumpPlace = clamp(bumpPlace, 1, 10);
+  });
+  const regimenCeiling = tierToScore(bumpTier, bumpPlace);
+
+  const TIER_LABELS = ['','Well Below Avg','Below Average','Slightly Below','Average','Above Average','Very Attractive','Exceptional'];
 
   bar.style.width = '100%';
-  setTimeout(() => renderReport(metrics, physiognomy, claudeData, finalScore, todayCeiling, regimenCeiling, presAvg, presScores, rawPct, annotatedImgUrl), 500);
+  setTimeout(() => renderReport(metrics, physiognomy, claudeData, finalScore, todayCeiling, regimenCeiling, presAvg, presScores, tier, TIER_LABELS[tier], annotatedImgUrl), 500);
 }
 
 // ===== SCORE ANIMATION =====
@@ -623,7 +641,7 @@ function animateScore(el, target) {
 }
 
 // ===== RENDER REPORT =====
-function renderReport(m, phys, cd, finalScore, todayCeil, regimenCeil, presAvg, presScores, rawPct, annotatedImgUrl) {
+function renderReport(m, phys, cd, finalScore, todayCeil, regimenCeil, presAvg, presScores, tier, tierLabel, annotatedImgUrl) {
   showScreen('report-screen');
   const r = document.getElementById('report');
   let sn = 0;
@@ -643,7 +661,7 @@ function renderReport(m, phys, cd, finalScore, todayCeil, regimenCeil, presAvg, 
   // 02 — OVERALL SCORE
   html += sec('Overall Score', `
     <div class="big-score" id="score-display">0.0</div><span class="big-score-sub">/ 10</span>
-    <div style="font-family:'DM Mono',monospace;font-size:12px;color:#444;margin-top:4px;letter-spacing:1px">${rawPct}th percentile</div>
+    <div style="font-family:'DM Mono',monospace;font-size:12px;color:#444;margin-top:4px;letter-spacing:1px">${esc(tierLabel)}</div>
     <div style="margin-top:20px">
       <div class="score-layer">
         <span class="score-layer-label">Structure</span>
@@ -666,7 +684,7 @@ function renderReport(m, phys, cd, finalScore, todayCeil, regimenCeil, presAvg, 
         <span class="score-layer-val">${(cd.harmony?.adjustment||0)>0?'+':''}${(cd.harmony?.adjustment||0).toFixed(1)}</span>
       </div>
     </div>
-    ${cd.percentile_reasoning ? `<div style="font-size:13px;color:#555;margin-top:16px;font-style:italic">${esc(cd.percentile_reasoning)}</div>` : ''}
+    ${cd.tier_reasoning ? `<div style="font-size:13px;color:#555;margin-top:16px;font-style:italic">${esc(cd.tier_reasoning)}</div>` : ''}
   `);
 
   // 03 — PROJECTION
@@ -747,23 +765,28 @@ function renderReport(m, phys, cd, finalScore, todayCeil, regimenCeil, presAvg, 
   html += sec('Architecture', archHTML);
 
   // 08 — OPTIMIZATION
+  const TIER_RANGES_R = {1:[1.5,3.0],2:[3.0,4.0],3:[4.0,4.8],4:[4.8,5.5],5:[5.5,7.0],6:[7.0,8.5],7:[8.5,10.0]};
+  function _t2s(t, p) { t=clamp(t,1,7); p=clamp(p,1,10); const[lo,hi]=TIER_RANGES_R[t]; return lo+(hi-lo)*((p-1)/9); }
+
   let optHTML = '<div class="opt-label">Today — Immediate Impact</div>';
-  let runningPct = rawPct;
+  let rT = tier, rP = cd.tier_placement || 5;
   (cd.today_moves || []).forEach(mv => {
-    const bpct = mv.bump_percentile || 0;
-    const before = _pctToScore(runningPct);
-    runningPct = clamp(runningPct + bpct, runningPct, 99);
-    const after = _pctToScore(runningPct);
-    const delta = (after - before).toFixed(1);
+    const before = _t2s(rT, rP);
+    rT += (mv.bump_tiers || 0); rP += (mv.bump_placement || 0);
+    while (rP > 10 && rT < 7) { rP -= 10; rT++; }
+    rT = clamp(rT,1,7); rP = clamp(rP,1,10);
+    const after = _t2s(rT, rP);
+    const delta = Math.max(0, after - before).toFixed(1);
     optHTML += `<div class="opt-item"><div class="opt-bump">+${delta}</div><div class="opt-content"><div class="opt-action">${esc(mv.action)}</div><div class="opt-detail">${esc(mv.detail)}</div></div></div>`;
   });
   optHTML += '<div class="opt-label">90-Day Regimen</div>';
   (cd.regimen_moves || []).forEach(mv => {
-    const bpct = mv.bump_percentile || 0;
-    const before = _pctToScore(runningPct);
-    runningPct = clamp(runningPct + bpct, runningPct, 99);
-    const after = _pctToScore(runningPct);
-    const delta = (after - before).toFixed(1);
+    const before = _t2s(rT, rP);
+    rT += (mv.bump_tiers || 0); rP += (mv.bump_placement || 0);
+    while (rP > 10 && rT < 7) { rP -= 10; rT++; }
+    rT = clamp(rT,1,7); rP = clamp(rP,1,10);
+    const after = _t2s(rT, rP);
+    const delta = Math.max(0, after - before).toFixed(1);
     optHTML += `<div class="opt-item"><div class="opt-bump">+${delta}</div><div class="opt-content"><div class="opt-action">${esc(mv.action)}</div><div class="opt-detail">${esc(mv.detail)}</div></div></div>`;
   });
   optHTML += `<div class="bf-ref"><div class="bf-ref-title">Body Fat Reference — Optimal Facial Definition</div><div class="bf-row"><span>Men</span><span>10 – 15%</span></div><div class="bf-row"><span>Women</span><span>18 – 22%</span></div></div>`;
